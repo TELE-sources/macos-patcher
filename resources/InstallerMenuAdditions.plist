@@ -8,11 +8,19 @@
 	</dict>
 	<dict>
 		<key>Path</key>
+		<string>/System/Applications/Utilities/Startup Disk.app</string>
+	</dict>
+	<dict>
+		<key>Path</key>
 		<string>/Applications/Utilities/Firmware Password Utility.app</string>
 	</dict>
 	<dict>
 		<key>Path</key>
 		<string>/Applications/Utilities/Startup Security Utility.app</string>
+	</dict>
+	<dict>
+		<key>Path</key>
+		<string>/System/Applications/Utilities/Startup Security Utility.app</string>
 	</dict>
 	<dict>
 		<key>isRAIDUtility</key>
@@ -26,7 +34,15 @@
 	</dict>
 	<dict>
 		<key>Path</key>
+		<string>/System/Applications/Utilities/Disk Utility.app</string>
+	</dict>
+	<dict>
+		<key>Path</key>
 		<string>/Applications/Utilities/Terminal.app</string>
+	</dict>
+	<dict>
+		<key>Path</key>
+		<string>/System/Applications/Utilities/Terminal.app</string>
 	</dict>
 	<dict>
 		<key>Path</key>
