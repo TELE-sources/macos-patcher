@@ -486,7 +486,7 @@ Modern_Installer()
 
 	echo ${text_progress}"> Patching platform support check."${erase_style}
 
-		rm /tmp/Base\ System/System/Library/CoreServices/PlatformSupport.plist
+		cp "$resources_path"/com.apple.Boot.plist /tmp/Base\ System/Library/Preferences/SystemConfiguration
 
 	echo ${move_up}${erase_line}${text_success}"+ Patched platform support check."${erase_style}
 

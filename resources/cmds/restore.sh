@@ -345,6 +345,9 @@ Restore_Volume()
 		
 		if [[ $volume_version_short == "10.1"[4-5] ]]; then
 			rm -R "$volume_path"/System/Library/Extensions/AppleUSBACM.kext
+		fi
+
+		if [[ $volume_version_short == "10.14" ]]; then
 			rm -R "$volume_path"/System/Library/Extensions/IOUSBFamily.kext
 			rm -R "$volume_path"/System/Library/Extensions/IOUSBHostFamily.kext
 		fi

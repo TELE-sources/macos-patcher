@@ -378,6 +378,9 @@ Patch_Volume()
 	
 		if [[ $volume_version_short == "10.1"[4-5] ]]; then
 			cp -R "$resources_path"/AppleUSBACM.kext "$volume_path"/System/Library/Extensions
+		fi
+
+		if [[ $volume_version_short == "10.14" ]]; then
 			cp -R "$resources_path"/IOUSBFamily.kext "$volume_path"/System/Library/Extensions
 			cp -R "$resources_path"/IOUSBHostFamily.kext "$volume_path"/System/Library/Extensions
 		fi
@@ -647,6 +650,9 @@ Repair_Permissions()
 		
 		if [[ $volume_version_short == "10.1"[4-5] ]]; then
 			Repair "$volume_path"/System/Library/Extensions/AppleUSBACM.kext
+		fi
+
+		if [[ $volume_version_short == "10.14" ]]; then
 			Repair "$volume_path"/System/Library/Extensions/IOUSBFamily.kext
 			Repair "$volume_path"/System/Library/Extensions/IOUSBHostFamily.kext
 		fi
