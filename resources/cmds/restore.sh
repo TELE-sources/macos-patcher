@@ -101,7 +101,7 @@ Check_SIP()
 {
 	echo ${text_progress}"> Checking System Integrity Protection status."${erase_style}
 
-	if [[ $(csrutil status) == *disabled* ]]; then
+	if [[ $(csrutil status) == *disabled* || $(csrutil status) == *unknown* ]]; then
 		echo ${move_up}${erase_line}${text_success}"+ System Integrity Protection status check passed."${erase_style}
 	fi
 

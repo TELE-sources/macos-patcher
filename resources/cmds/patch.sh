@@ -103,7 +103,7 @@ Check_SIP()
 {
 	echo ${text_progress}"> Checking System Integrity Protection status."${erase_style}
 
-	if [[ $(csrutil status) == *disabled* ]]; then
+	if [[ $(csrutil status) == *disabled* || $(csrutil status) == *unknown* ]]; then
 		echo ${move_up}${erase_line}${text_success}"+ System Integrity Protection status check passed."${erase_style}
 	fi
 
@@ -477,13 +477,13 @@ Patch_Volume()
 	
 		if [[ $volume_version == "10.14."[5-6] ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
-			cp -R "$resources_path"/CoreDisplay-10.14.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
+			cp -R "$resources_path"/10.14/CoreDisplay.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 		fi
 	
 		if [[ $volume_version_short == "10.15" ]]; then
 			cp -R "$resources_path"/IOSurface.kext "$volume_path"/System/Library/Extensions
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
-			cp -R "$resources_path"/CoreDisplay-10.15.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
+			cp -R "$resources_path"/CoreDisplay.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 			cp -R "$resources_path"/SkyLight.framework "$volume_path"/System/Library/PrivateFrameworks
 		fi
@@ -594,9 +594,9 @@ Patch_Volume()
 	echo ${text_progress}"> Patching software update check."${erase_style}
 
 		if [[ $volume_version_short == "10.12" ]]; then
-			cp "$resources_path"/SUVMMFaker-10.12.dylib "$volume_path"/usr/lib/SUVMMFaker.dylib
+			cp "$resources_path"/10.12/SUVMMFaker.dylib "$volume_path"/usr/lib/SUVMMFaker.dylib
 		else
-			cp "$resources_path"/SUVMMFaker-10.13.dylib "$volume_path"/usr/lib/SUVMMFaker.dylib
+			cp "$resources_path"/SUVMMFaker.dylib "$volume_path"/usr/lib/SUVMMFaker.dylib
 		fi
 
 		cp "$resources_path"/com.apple.softwareupdated.plist "$volume_path"/System/Library/LaunchDaemons
@@ -933,9 +933,15 @@ Patch_Volume_Helpers()
 				if [[ ! "$recovery_folder" == "/Volumes/Recovery/"* ]]; then
 					echo ${text_warning}"! Error patching Recovery partition."${erase_style}
 				else
-					Output_Off rm "$recovery_folder"/prelinkedkernel
+					chflags nouchg "$recovery_folder"/immutablekernel
 					rm "$recovery_folder"/immutablekernel
-					cp /System/Library/PrelinkedKernels/prelinkedkernel "$numeric_folder"/immutablekernel
+					cp /System/Library/PrelinkedKernels/prelinkedkernel "$recovery_identifier"/immutablekernel
+					chflags uchg "$recovery_folder"/immutablekernel
+
+					chflags nouchg "$recovery_folder"/prelinkedkernel
+					rm "$recovery_folder"/prelinkedkernel
+					cp /System/Library/PrelinkedKernels/prelinkedkernel "$recovery_identifier"/prelinkedkernel
+					chflags uchg "$recovery_folder"/prelinkedkernel
 	
 					Output_Off rm "$recovery_folder"/PlatformSupport.plist
 					Output_Off sed -i '' 's|dmg</string>|dmg -no_compat_check</string>|' "$recovery_folder"/com.apple.boot.plist
@@ -959,9 +965,11 @@ Patch_Volume_Helpers()
 				echo ${text_warning}"! Error patching Recovery partition."${erase_style}
 			else
 				Output_Off diskutil mount "$recovery_identifier"
-	
-				Output_Off rm /Volumes/Recovery\ HD/com.apple.recovery.boot/prelinkedkernel
+				
+				chflags nouchg /Volumes/Recovery\ HD/com.apple.recovery.boot/prelinkedkernel
+				rm /Volumes/Recovery\ HD/com.apple.recovery.boot/prelinkedkernel
 				cp /System/Library/PrelinkedKernels/prelinkedkernel /Volumes/Recovery\ HD/com.apple.recovery.boot
+				chflags uchg /Volumes/Recovery\ HD/com.apple.recovery.boot/prelinkedkernel
 	
 				Output_Off rm /Volumes/Recovery\ HD/com.apple.recovery.boot/PlatformSupport.plist
 	

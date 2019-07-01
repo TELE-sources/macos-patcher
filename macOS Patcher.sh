@@ -34,6 +34,10 @@ Parameter_Variables()
 	if [[ $parameters == *"-modern-prelinkedkernel"* ]]; then
 		modern_prelinkedkernel="1"
 	fi
+
+	if [[ $parameters == *"-legacy-prelinkedkernel"* ]]; then
+		legacy_prelinkedkernel="1"
+	fi
 }
 
 Path_Variables()
@@ -172,6 +176,8 @@ Input_Installer()
 	Input_Off
 
 	installer_application_name="${installer_application_path##*/}"
+	installer_application_name_partial="${installer_application_name%.app}"
+
 	installer_sharedsupport_path="$installer_application_path/Contents/SharedSupport"
 }
 
@@ -225,10 +231,14 @@ Check_Installer_Support()
 
 Installer_Variables()
 {
-	if [[ $modern_prelinkedkernel == "1" ]] && [[ $modern_prelinkedkernel_check == "1" || $installer_version_short == "10.15" ]]; then
+	installer_prelinkedkernel_path="$resources_path/prelinkedkernel"
+
+	if [[ $modern_prelinkedkernel == "1" && $modern_prelinkedkernel_check == "1" ]]; then
 		installer_prelinkedkernel_path="$resources_path/prelinkedkernel-modern"
-	else
-		installer_prelinkedkernel_path="$resources_path/prelinkedkernel"
+	fi
+	
+	if [[ $legacy_prelinkedkernel == "1" && $installer_version_short == "10.15" ]]; then
+		installer_prelinkedkernel_path="$resources_path/prelinkedkernel-legacy"
 	fi
 
 	if [[ $installer_version_short == "10.1"[2-5] || $installer_version == "10.13."[1-3] ]]; then
@@ -400,13 +410,11 @@ Patch_Unsupported()
 	echo ${move_up}${erase_line}${text_success}"+ Patched installer package."${erase_style}
 
 
-	if [[ ! $installer_version_short == "10.15" ]]; then 
-		echo ${text_progress}"> Patching input drivers."${erase_style}
+	echo ${text_progress}"> Patching input drivers."${erase_style}
 
-			cp -R "$resources_path"/patch/LegacyUSBInjector.kext "$installer_volume_path"/System/Library/Extensions
+		cp -R "$resources_path"/patch/LegacyUSBInjector.kext "$installer_volume_path"/System/Library/Extensions
 
-		echo ${move_up}${erase_line}${text_success}"+ Patched input drivers."${erase_style}
-	fi
+	echo ${move_up}${erase_line}${text_success}"+ Patched input drivers."${erase_style}
 
 
 	echo ${text_progress}"> Patching platform support check."${erase_style}
@@ -418,9 +426,10 @@ Patch_Unsupported()
 
 	echo ${text_progress}"> Patching kernel cache."${erase_style}
 	
-			rm "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
-			cp "$installer_prelinkedkernel_path"/"$installer_prelinkedkernel"/prelinkedkernel "$installer_volume_path"/System/Library/PrelinkedKernels
-			chflags uchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
+		chflags nouchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
+		rm "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
+		cp "$installer_prelinkedkernel_path"/"$installer_prelinkedkernel"/prelinkedkernel "$installer_volume_path"/System/Library/PrelinkedKernels
+		chflags uchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
 	
 	echo ${move_up}${erase_line}${text_success}"+ Patched kernel cache."${erase_style}
 
@@ -445,18 +454,34 @@ Patch_Unsupported()
 
 Modern_Installer()
 {
-	echo ${text_progress}"> Unmounting installer disk image."${erase_style}
+	echo ${text_progress}"> Unmounting installer disk images."${erase_style}
 
 		Output_Off hdiutil detach /tmp/Base\ System
+		Output_Off hdiutil detach /tmp/InstallESD
 
-	echo ${move_up}${erase_line}${text_success}"+ Unmounted installer disk image."${erase_style}
+	echo ${move_up}${erase_line}${text_success}"+ Unmounted installer disk images."${erase_style}
 
 
-	echo ${text_progress}"> Mounting installer disk image."${erase_style}
+	echo ${text_progress}"> Creating installer disk."${erase_style}
+
+		Output_Off "$installer_application_path"/Contents/Resources/createinstallmedia --volume "$installer_volume_path" --applicationpath "$installer_application_path" --nointeraction
+
+	echo ${text_progress}"> Created installer disk."${erase_style}
+
+
+	echo ${text_progress}"> Renaming installer volume."${erase_style}
+
+		Output_Off diskutil rename /Volumes/"$installer_application_name_partial" "$installer_volume_name"
+		bless --folder "$installer_volume_path"/System/Library/CoreServices --label "$installer_volume_name"
+
+	echo ${move_up}${erase_line}${text_success}"+ Renamed installer volume."${erase_style}
+
+
+	echo ${text_progress}"> Mounting BaseSystem disk image."${erase_style}
 	
-		Output_Off hdiutil attach -owners on "$installer_images_path"/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse -shadow
+		Output_Off hdiutil attach -owners on "$installer_sharedsupport_path"/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse -shadow
 
-	echo ${move_up}${erase_line}${text_success}"+ Mounting installer disk image."${erase_style}
+	echo ${move_up}${erase_line}${text_success}"+ Mounting BaseSystem disk image."${erase_style}
 
 
 	echo ${text_progress}"> Patching installer files."${erase_style}
@@ -464,38 +489,51 @@ Modern_Installer()
 		cp "$resources_path"/brtool /tmp/Base\ System/usr/libexec
 		cp "$resources_path"/OSInstaller /tmp/Base\ System/System/Library/PrivateFrameworks/OSInstaller.framework/Versions/A
 		cp "$resources_path"/OSInstallerSetupInternal /tmp/Base\ System/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Frameworks/OSInstallerSetupInternal.framework/Versions/A
+		cp "$resources_path"/OSInstallerSetupInternal "$installer_volume_path"/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Frameworks/OSInstallerSetupInternal.framework/Versions/A
+		cp "$resources_path"/osishelperd /tmp/Base\ System/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources
+		cp "$resources_path"/osishelperd "$installer_volume_path"/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources
 		cp -R "$resources_path"/DisableLibraryValidation.kext /tmp/Base\ System/System/Library/Extensions
+		cp "$resources_path"/apfsprep /tmp/Base\ System/sbin
 
 		Repair /tmp/Base\ System/usr/libexec/brtool
 		Repair /tmp/Base\ System/System/Library/PrivateFrameworks/OSInstaller.framework/Versions/A/OSInstaller
 		Repair /tmp/Base\ System/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Frameworks/OSInstallerSetupInternal.framework/Versions/A/OSInstallerSetupInternal
+		Repair "$installer_volume_path"/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Frameworks/OSInstallerSetupInternal.framework/Versions/A/OSInstallerSetupInternal
+		Repair /tmp/Base\ System/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources/osishelperd
+		Repair "$installer_volume_path"/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources/osishelperd
 		Repair /tmp/Base\ System/System/Library/Extensions/DisableLibraryValidation.kext
+		Repair /tmp/Base\ System/sbin/apfsprep
 
 	echo ${move_up}${erase_line}${text_success}"+ Patched installer files."${erase_style}
 
 
-	# if [[ ! $installer_version_short == "10.15" ]]; then 
-		echo ${text_progress}"> Patching input drivers."${erase_style}
+	echo ${text_progress}"> Patching input drivers."${erase_style}
 
-			cp -R "$resources_path"/patch/LegacyUSBInjector.kext /tmp/Base\ System/System/Library/Extensions
-			Repair /tmp/Base\ System/System/Library/Extensions/LegacyUSBInjector.kext
+		cp -R "$resources_path"/patch/LegacyUSBInjector.kext /tmp/Base\ System/System/Library/Extensions
+		Repair /tmp/Base\ System/System/Library/Extensions/LegacyUSBInjector.kext
 
-		echo ${move_up}${erase_line}${text_success}"+ Patched input drivers."${erase_style}
-	# fi
+	echo ${move_up}${erase_line}${text_success}"+ Patched input drivers."${erase_style}
 
 
 	echo ${text_progress}"> Patching platform support check."${erase_style}
 
-		cp "$resources_path"/com.apple.Boot.plist /tmp/Base\ System/Library/Preferences/SystemConfiguration
-
+		Output_Off sed -i '' 's|dmg</string>|dmg -no_compat_check</string>|' /tmp/Base\ System/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
+		Output_Off sed -i '' 's|dmg</string>|dmg -no_compat_check</string>|' "$installer_volume_path"/Library/Preferences/SystemConfiguration/com.apple.boot.plist
+		
 	echo ${move_up}${erase_line}${text_success}"+ Patched platform support check."${erase_style}
 
 
 	echo ${text_progress}"> Patching kernel cache."${erase_style}
 	
-			rm /tmp/Base\ System/System/Library/PrelinkedKernels/prelinkedkernel
-			cp "$installer_prelinkedkernel_path"/"$installer_prelinkedkernel"/prelinkedkernel /tmp/Base\ System/System/Library/PrelinkedKernels
-			chflags uchg /tmp/Base\ System/System/Library/PrelinkedKernels/prelinkedkernel
+		chflags nouchg /tmp/Base\ System/System/Library/PrelinkedKernels/prelinkedkernel
+		rm /tmp/Base\ System/System/Library/PrelinkedKernels/prelinkedkernel
+		cp "$installer_prelinkedkernel_path"/"$installer_prelinkedkernel"/prelinkedkernel /tmp/Base\ System/System/Library/PrelinkedKernels
+		chflags uchg /tmp/Base\ System/System/Library/PrelinkedKernels/prelinkedkernel
+
+		chflags nouchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
+		rm "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
+		cp "$installer_prelinkedkernel_path"/"$installer_prelinkedkernel"/prelinkedkernel "$installer_volume_path"/System/Library/PrelinkedKernels
+		chflags uchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
 	
 	echo ${move_up}${erase_line}${text_success}"+ Patched kernel cache."${erase_style}
 
@@ -508,105 +546,69 @@ Modern_Installer()
 	echo ${move_up}${erase_line}${text_success}"+ Patched System Integrity Protection."${erase_style}
 
 
-	echo ${text_progress}"> Unmounting installer disk image."${erase_style}
+	echo ${text_progress}"> Copying patcher utilities."${erase_style}
+
+		cp -R "$resources_path"/patch /tmp/Base\ System/usr/
+		cp "$resources_path"/cmds/patch.sh /tmp/Base\ System/usr/bin/patch
+		cp "$resources_path"/cmds/restore.sh /tmp/Base\ System/usr/bin/restore
+		chmod +x /tmp/Base\ System/usr/bin/patch
+		chmod +x /tmp/Base\ System/usr/bin/restore
+
+	echo ${move_up}${erase_line}${text_success}"+ Copied patcher utilities."${erase_style}
+
+
+	echo ${text_progress}"> Unmounting BaseSystem disk image."${erase_style}
 
 		Output_Off hdiutil detach /tmp/Base\ System
 
-	echo ${move_up}${erase_line}${text_success}"+ Unmounted installer disk image."${erase_style}
+	echo ${move_up}${erase_line}${text_success}"+ Unmounted BaseSystem disk image."${erase_style}
 
 
-	echo ${text_progress}"> Converting installer disk image."${erase_style}
+	echo ${text_progress}"> Converting BaseSystem disk image."${erase_style}
 	
-		Output_Off hdiutil convert -format UDZO "$installer_images_path"/BaseSystem.dmg -o /tmp/BaseSystem.dmg -shadow
+		rm "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/BaseSystem.dmg
+		Output_Off hdiutil convert -format UDZO "$installer_sharedsupport_path"/BaseSystem.dmg -o "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/BaseSystem.dmg -shadow
+		Repair "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/BaseSystem.dmg
 
-	echo ${move_up}${erase_line}${text_success}"+ Converted installer disk image."${erase_style}
-
-
-	echo ${text_progress}"> Restoring installer disk image."${erase_style}
-
-		Output_Off asr restore -source /tmp/BaseSystem.dmg -target "$installer_volume_path" -noprompt -noverify -erase
-
-	echo ${move_up}${erase_line}${text_success}"+ Restored installer disk image."${erase_style}
+	echo ${move_up}${erase_line}${text_success}"+ Converted BaseSystem disk image."${erase_style}
 
 
-	echo ${text_progress}"> Renaming installer volume."${erase_style}
-
-		Output_Off diskutil rename /Volumes/*Base\ System "$installer_volume_name"
-		bless --folder "$installer_volume_path"/System/Library/CoreServices --label "$installer_volume_name"
-
-	echo ${move_up}${erase_line}${text_success}"+ Renamed installer volume."${erase_style}
-
-
-	echo ${text_progress}"> Copying installer disk images."${erase_style}
-		
-		mkdir "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport
-		cp "$installer_sharedsupport_path"/InstallInfo.plist "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport
-
-		cp /tmp/BaseSystem.dmg "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport
-		cp "$installer_images_path"/BaseSystem.chunklist "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport
-	
-		if [[ -e "$installer_images_path"/AppleDiagnostics.dmg ]]; then
-			cp "$installer_images_path"/AppleDiagnostics.dmg "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport
-			cp "$installer_images_path"/AppleDiagnostics.chunklist "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport
-		fi
-
-		Repair "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport
-	echo ${move_up}${erase_line}${text_success}"+ Copied installer disk images."${erase_style}
-
-
-	echo ${text_progress}"> Unmounting installer disk image."${erase_style}
-
-		Output_Off hdiutil detach /tmp/InstallESD
-
-	echo ${move_up}${erase_line}${text_success}"+ Unmounted installer disk image."${erase_style}
-
-
-	echo ${text_progress}"> Mounting installer disk image."${erase_style}
+	echo ${text_progress}"> Mounting InstallESD disk image."${erase_style}
 
 		Output_Off hdiutil attach -owners on "$installer_sharedsupport_path"/InstallESD.dmg -mountpoint /tmp/InstallESD -nobrowse -shadow
 
-	echo ${move_up}${erase_line}${text_success}"+ Mounted installer disk image."${erase_style}
+	echo ${move_up}${erase_line}${text_success}"+ Mounted InstallESD disk image."${erase_style}
 
 
 	echo ${text_progress}"> Patching installer package."${erase_style}
 
-		cp /tmp/InstallESD/Packages/OSInstall.mpkg "$installer_volume_path"/tmp
-		pkgutil --expand "$installer_volume_path"/tmp/OSInstall.mpkg "$installer_volume_path"/tmp/OSInstall
-		sed -i '' 's/cpuFeatures\[i\] == "VMM"/1 == 1/' "$installer_volume_path"/tmp/OSInstall/Distribution
-		sed -i '' 's/nonSupportedModels.indexOf(currentModel)&gt;= 0/1 == 0/' "$installer_volume_path"/tmp/OSInstall/Distribution
-		sed -i '' 's/boardIds.indexOf(boardId)== -1/1 == 0/' "$installer_volume_path"/tmp/OSInstall/Distribution
-		pkgutil --flatten "$installer_volume_path"/tmp/OSInstall "$installer_volume_path"/tmp/OSInstall.mpkg
-		cp "$installer_volume_path"/tmp/OSInstall.mpkg /tmp/InstallESD/Packages
+		cp /tmp/InstallESD/Packages/OSInstall.mpkg /tmp
+		pkgutil --expand /tmp/OSInstall.mpkg /tmp/OSInstall
+		sed -i '' 's/cpuFeatures\[i\] == "VMM"/1 == 1/' /tmp/OSInstall/Distribution
+		sed -i '' 's/nonSupportedModels.indexOf(currentModel)&gt;= 0/1 == 0/' /tmp/OSInstall/Distribution
+		sed -i '' 's/boardIds.indexOf(boardId)== -1/1 == 0/' /tmp/OSInstall/Distribution
+		pkgutil --flatten /tmp/OSInstall /tmp/OSInstall.mpkg
+		cp /tmp/OSInstall.mpkg /tmp/InstallESD/Packages
 
 		Repair /tmp/InstallESD/Packages/OSInstall.mpkg
 
 	echo ${move_up}${erase_line}${text_success}"+ Patched installer package."${erase_style}
 
 
-	echo ${text_progress}"> Unmounting installer disk images."${erase_style}
+	echo ${text_progress}"> Unmounting InstallESD disk image."${erase_style}
 
 		Output_Off hdiutil detach /tmp/InstallESD
 
-	echo ${move_up}${erase_line}${text_success}"+ Unmounted installer disk images."${erase_style}
+	echo ${move_up}${erase_line}${text_success}"+ Unmounted InstallESD disk image."${erase_style}
 
 
-	echo ${text_progress}"> Copying installer disk image."${erase_style}
+	echo ${text_progress}"> Converting InstallESD disk image."${erase_style}
 	
+		rm "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/InstallESD.dmg
 		Output_Off hdiutil convert -format UDZO "$installer_sharedsupport_path"/InstallESD.dmg -o "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/InstallESD.dmg -shadow
 		Repair "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/InstallESD.dmg
 
-	echo ${move_up}${erase_line}${text_success}"+ Copying installer disk image."${erase_style}
-
-
-	echo ${text_progress}"> Copying patcher utilities."${erase_style}
-
-		cp -R "$resources_path"/patch "$installer_volume_path"/usr/
-		cp "$resources_path"/cmds/patch.sh "$installer_volume_path"/usr/bin/patch
-		cp "$resources_path"/cmds/restore.sh "$installer_volume_path"/usr/bin/restore
-		chmod +x "$installer_volume_path"/usr/bin/patch
-		chmod +x "$installer_volume_path"/usr/bin/restore
-
-	echo ${move_up}${erase_line}${text_success}"+ Copied patcher utilities."${erase_style}
+	echo ${move_up}${erase_line}${text_success}"+ Converting InstallESD disk image."${erase_style}
 }
 
 Repair()
@@ -634,9 +636,7 @@ Repair_Permissions()
 	
 		Repair "$installer_volume_path"/System/Installation/Packages/OSInstall.mpkg
 	
-		if [[ ! $installer_version_short == "10.15" ]]; then 
-			Repair "$installer_volume_path"/System/Library/Extensions/LegacyUSBInjector.kext
-		fi
+		Repair "$installer_volume_path"/System/Library/Extensions/LegacyUSBInjector.kext
 		
 		Repair "$installer_volume_path"/System/Library/Extensions/SIPManager.kext
 	
@@ -695,20 +695,19 @@ Patch_Package()
 
 End()
 {
-	# if [[ $operation == "1" ]]; then
-		echo ${text_progress}"> Removing temporary files."${erase_style}
+	echo ${text_progress}"> Removing temporary files."${erase_style}
 
-			Output_Off rm -R "$installer_volume_path"/tmp/*
+		Output_Off rm -R "$installer_volume_path"/tmp/*
 
-			if [[ $installer_version_short == "10.15" ]]; then
-				Output_Off rm -R /tmp/*
+		if [[ $installer_version_short == "10.15" ]]; then
+			Output_Off rm -R /tmp/*
 
-				rm "$installer_sharedsupport_path"/BaseSystem.dmg.shadow
-				rm "$installer_sharedsupport_path"/InstallESD.dmg.shadow
-			fi
+			rm "$installer_sharedsupport_path"/BaseSystem.dmg.shadow
+			rm "$installer_sharedsupport_path"/InstallESD.dmg.shadow
+		fi
 
-		echo ${move_up}${erase_line}${text_success}"+ Removed temporary files."${erase_style}
-	# fi
+	echo ${move_up}${erase_line}${text_success}"+ Removed temporary files."${erase_style}
+
 
 	echo ${text_message}"/ Thank you for using macOS Patcher."${erase_style}
 	
