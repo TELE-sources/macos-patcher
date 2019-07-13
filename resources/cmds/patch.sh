@@ -758,7 +758,6 @@ Repair_Permissions()
 
 	Repair "$volume_path"/System/Library/Extensions/SIPManager.kext
 
-	Repair "$volume_path/$system_version_pip_path"
 	Repair "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
 	Repair "$volume_path"/Library/Application\ Support/com.rmc.pipagent
 	Repair "$volume_path"/usr/bin/piputil
