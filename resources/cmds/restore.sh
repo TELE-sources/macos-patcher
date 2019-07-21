@@ -538,6 +538,15 @@ Restore_Volume()
 	fi
 
 
+	if [[ $volume_version_short == "10.15" ]]; then
+		echo ${text_progress}"> Removing IDE drivers patch."${erase_style}
+
+			rm -R "$volume_path"/System/Library/Extensions/IOATAFamily.kext/Contents/PlugIns/AppleIntelPIIXATA.kext
+
+		echo ${move_up}${erase_line}${text_success}"+ Removed IDE drivers patch."${erase_style}
+	fi
+
+
 	echo ${text_progress}"> Removing software update check patch."${erase_style}
 
 		rm "$volume_path"/usr/lib/SUVMMFaker.dylib

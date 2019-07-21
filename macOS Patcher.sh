@@ -493,7 +493,9 @@ Modern_Installer()
 		cp "$resources_path"/osishelperd /tmp/Base\ System/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources
 		cp "$resources_path"/osishelperd "$installer_volume_path"/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources
 		cp -R "$resources_path"/DisableLibraryValidation.kext /tmp/Base\ System/System/Library/Extensions
-		cp "$resources_path"/apfsprep /tmp/Base\ System/sbin
+		
+		cp "$resources_path"/apfsprep.sh /tmp/Base\ System/sbin/apfsprep
+		chmod +x /tmp/Base\ System/sbin/apfsprep
 
 		Repair /tmp/Base\ System/usr/libexec/brtool
 		Repair /tmp/Base\ System/System/Library/PrivateFrameworks/OSInstaller.framework/Versions/A/OSInstaller
@@ -502,7 +504,6 @@ Modern_Installer()
 		Repair /tmp/Base\ System/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources/osishelperd
 		Repair "$installer_volume_path"/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources/osishelperd
 		Repair /tmp/Base\ System/System/Library/Extensions/DisableLibraryValidation.kext
-		Repair /tmp/Base\ System/sbin/apfsprep
 
 	echo ${move_up}${erase_line}${text_success}"+ Patched installer files."${erase_style}
 
@@ -517,8 +518,8 @@ Modern_Installer()
 
 	echo ${text_progress}"> Patching platform support check."${erase_style}
 
-		Output_Off sed -i '' 's|dmg</string>|dmg -no_compat_check</string>|' /tmp/Base\ System/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
-		Output_Off sed -i '' 's|dmg</string>|dmg -no_compat_check</string>|' "$installer_volume_path"/Library/Preferences/SystemConfiguration/com.apple.boot.plist
+		Output_Off sed -i '' 's|BaseSystem.dmg</string>|BaseSystem.dmg -no_compat_check</string>|' /tmp/Base\ System/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
+		Output_Off sed -i '' 's|BaseSystem.dmg</string>|BaseSystem.dmg -no_compat_check</string>|' "$installer_volume_path"/Library/Preferences/SystemConfiguration/com.apple.boot.plist
 		
 	echo ${move_up}${erase_line}${text_success}"+ Patched platform support check."${erase_style}
 

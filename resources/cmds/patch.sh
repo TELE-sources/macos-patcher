@@ -317,9 +317,20 @@ Check_Volume_Support()
 	fi
 }
 
-Check_Volume_dosdude()
+Volume_Variables()
 {
 	if [ -e $volume_path/Library/LaunchAgents/com.dd1* ] || [ -e $volume_path/Library/LaunchAgents/com.dosdude1* ]; then
+		volume_patch_variant_dosdude="1"
+	fi
+
+	if [[ -e /Volumes/EFI/EFI/BOOT/BOOTX64.efi && -e /Volumes/EFI/EFI/apfs.efi ]]; then
+		volume_patch_apfs="1"
+	fi
+}
+
+Check_Volume_dosdude()
+{
+	if [[ $volume_patch_variant_dosdude == "1" ]]; then
 		echo ${text_warning}"! A system patch by another patcher already exists."${erase_style}
 		echo ${text_message}"/ What operation would you like to run?"${erase_style}
 		echo ${text_message}"/ Input an operation number."${erase_style}
@@ -386,9 +397,9 @@ Patch_Volume()
 		fi
 		
 	
-		if [[ $volume_version_short == "10.15" ]]; then
-			cp -R "$resources_path"/IOHIDFamily.kext "$volume_path"/System/Library/Extensions
-		fi
+		# if [[ $volume_version_short == "10.15" ]]; then
+		# 	cp -R "$resources_path"/IOHIDFamily.kext "$volume_path"/System/Library/Extensions
+		# fi
 	
 		if [[ $model == "MacBook4,1" ]]; then
 			cp -R "$resources_path"/MacBook4,1/AppleIRController.kext "$volume_path"/System/Library/Extensions
@@ -591,6 +602,15 @@ Patch_Volume()
 	fi
 
 
+	if [[ $volume_version_short == "10.15" ]]; then
+		echo ${text_progress}"> Patching IDE drivers."${erase_style}
+
+			cp -R "$resources_path"/AppleIntelPIIXATA.kext "$volume_path"/System/Library/Extensions/IOATAFamily.kext/Contents/PlugIns
+
+		echo ${move_up}${erase_line}${text_success}"+ Patched IDE drivers."${erase_style}
+	fi
+
+
 	echo ${text_progress}"> Patching software update check."${erase_style}
 
 		if [[ $volume_version_short == "10.12" ]]; then
@@ -658,9 +678,9 @@ Repair_Permissions()
 		fi
 		
 	
-		if [[ $volume_version_short == "10.15" ]]; then
-			Repair "$volume_path"/System/Library/Extensions/IOHIDFamily.kext
-		fi
+		# if [[ $volume_version_short == "10.15" ]]; then
+		# 	Repair "$volume_path"/System/Library/Extensions/IOHIDFamily.kext
+		# fi
 	
 		if [[ $model == "MacBook4,1" ]]; then
 			Repair "$volume_path"/System/Library/Extensions/AppleIRController.kext
@@ -785,6 +805,10 @@ Repair_Permissions()
 		fi
 	
 		Repair "$volume_path"/System/Library/PrivateFrameworks/SiriUI.framework
+
+		if [[ $volume_version_short == "10.15" ]]; then
+			Repair "$volume_path"/System/Library/Extensions/IOATAFamily.kext
+		fi
 	
 		Repair "$volume_path"/usr/lib/SUVMMFaker.dylib
 		Repair "$volume_path"/System/Library/LaunchDaemons/com.apple.softwareupdated.plist 
@@ -811,6 +835,11 @@ Input_Operation_APFS()
 			if [[ $operation_apfs == "1" ]]; then
 				Patch_APFS
 			fi
+
+			if [[ $operation_apfs == "2" && $volume_patch_apfs == "1" ]]; then
+				source "$directory_path"/restore
+				Restore_APFS
+			fi
 		fi
 	fi
 }
@@ -834,7 +863,8 @@ Patch_APFS()
 			rm -R "$volume_path"/Library/PreferencePanes/APFS\ Boot\ Selector.prefPane
 		fi
 	
-		sed -i '' "s/volume_uuid/$volume_uuid/g" /Volumes/EFI/EFI/BOOT/startup.nsh
+		sed -i '' "s/\"volume_uuid\"/\"$volume_uuid\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
+		sed -i '' "s/\"boot_file\"/\"System\\\Library\\\CoreServices\\\boot.efi\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
 	
 		if [[ $(diskutil info "$volume_name"|grep "Device Location") == *"Internal" ]]; then
 			bless --mount /Volumes/EFI --setBoot --file /Volumes/EFI/EFI/BOOT/BOOTX64.efi --shortform
@@ -873,7 +903,7 @@ Patch_Volume_Helpers()
 				Output_Off diskutil mount "$preboot_identifier"
 	
 				for numeric_folder in /Volumes/Preboot/*; do
-					if [[ -e "$numeric_folder/$system_version_path" ]]; then
+					if [[ -e "$numeric_folder"/System/Library/CoreServices/SystemVersion.plist ]]; then
 						preboot_version="$(defaults read "$numeric_folder"/System/Library/CoreServices/SystemVersion.plist ProductVersion)"
 						preboot_version_short="$(defaults read "$numeric_folder"/System/Library/CoreServices/SystemVersion.plist ProductVersion | cut -c-5)"
 					fi
@@ -935,12 +965,12 @@ Patch_Volume_Helpers()
 				else
 					chflags nouchg "$recovery_folder"/immutablekernel
 					rm "$recovery_folder"/immutablekernel
-					cp /System/Library/PrelinkedKernels/prelinkedkernel "$recovery_identifier"/immutablekernel
+					cp /System/Library/PrelinkedKernels/prelinkedkernel "$recovery_folder"/immutablekernel
 					chflags uchg "$recovery_folder"/immutablekernel
 
 					chflags nouchg "$recovery_folder"/prelinkedkernel
 					rm "$recovery_folder"/prelinkedkernel
-					cp /System/Library/PrelinkedKernels/prelinkedkernel "$recovery_identifier"/prelinkedkernel
+					cp /System/Library/PrelinkedKernels/prelinkedkernel "$recovery_folder"/prelinkedkernel
 					chflags uchg "$recovery_folder"/prelinkedkernel
 	
 					Output_Off rm "$recovery_folder"/PlatformSupport.plist
@@ -1003,6 +1033,7 @@ Input_Volume
 Mount_EFI
 Check_Volume_Version
 Check_Volume_Support
+Volume_Variables
 Check_Volume_dosdude
 Patch_Volume
 Repair_Permissions
