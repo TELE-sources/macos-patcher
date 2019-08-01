@@ -183,7 +183,7 @@ Check_Installer_Version()
 Check_Installer_Support()
 {
 	echo ${text_progress}"> Checking installer support."${erase_style}
-	if [[ $installer_version_short == "10.1"[2-3] || $installer_version == "10.14" || $installer_version == "10.14."[1-5] ]]; then
+	if [[ $installer_version_short == "10.1"[2-4] ]]; then
 		echo ${move_up}${erase_line}${text_success}"+ Installer support check passed."${erase_style}
 	else
 		echo ${text_error}"- Installer support check failed."${erase_style}
@@ -209,7 +209,7 @@ Installer_Variables()
 		installer_prelinkedkernel="$installer_version_short.1"
 	fi
 
-	if [[ $installer_version == "10.12."[4-6] || $installer_version == "10.13."[4-6] || $installer_version == "10.14."[4-5] ]]; then
+	if [[ $installer_version == "10.12."[4-6] || $installer_version == "10.13."[4-6] || $installer_version == "10.14."[4-6] ]]; then
 		installer_prelinkedkernel="$installer_version_short.4"
 	fi
 }

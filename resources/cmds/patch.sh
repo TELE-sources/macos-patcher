@@ -95,10 +95,9 @@ Check_Root()
 Check_SIP()
 {
 	echo ${text_progress}"> Checking System Integrity Protection status."${erase_style}
-	if [[ $(csrutil status) == *disabled* || $(csrutil status) == *unknown* ]]; then
+	if [[ $(csrutil status | grep status) == *disabled* || $(csrutil status | grep status) == *unknown* ]]; then
 		echo ${move_up}${erase_line}${text_success}"+ System Integrity Protection status check passed."${erase_style}
-	fi
-	if [[ $(csrutil status) == *enabled* ]]; then
+	else
 		echo ${text_error}"- System Integrity Protection status check failed."${erase_style}
 		echo ${text_message}"/ Run this tool with System Integrity Protection disabled."${erase_style}
 		Input_On
