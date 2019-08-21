@@ -495,6 +495,7 @@ Patch_Volume()
 			cp -R "$resources_path"/CoreDisplay.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 			cp -R "$resources_path"/SkyLight.framework "$volume_path"/System/Library/PrivateFrameworks
+			cp "$resources_path"/libCoreFSCache.dylib "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
 		fi
 	
 		if [[ $model == "MacBook4,1" ]]; then
