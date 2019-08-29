@@ -99,10 +99,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			4HU4w+/Vq3bBqfr1OfZgZGuumyk=
+			fg9WU5bMYh9gw3NA+otgm11P8Kc=
 			</data>
 			<key>requirement</key>
-			<string>identifier "com.apple.SkyLight" and anchor apple</string>
+			<string>cdhash H"7e0f565396cc621f60c37340fa8b609b5d4ff0a7"</string>
 		</dict>
 	</dict>
 	<key>rules</key>
