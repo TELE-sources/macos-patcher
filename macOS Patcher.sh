@@ -231,16 +231,6 @@ Check_Installer_Support()
 
 Installer_Variables()
 {
-	installer_prelinkedkernel_path="$resources_path/prelinkedkernel"
-
-	if [[ $modern_prelinkedkernel == "1" && $modern_prelinkedkernel_check == "1" ]]; then
-		installer_prelinkedkernel_path="$resources_path/prelinkedkernel-modern"
-	fi
-	
-	if [[ $legacy_prelinkedkernel == "1" && $installer_version_short == "10.15" ]]; then
-		installer_prelinkedkernel_path="$resources_path/prelinkedkernel-legacy"
-	fi
-
 	if [[ $installer_version_short == "10.1"[2-5] || $installer_version == "10.13."[1-3] ]]; then
 		installer_prelinkedkernel="$installer_version_short"
 	fi
@@ -251,6 +241,16 @@ Installer_Variables()
 
 	if [[ $installer_version == "10.12."[4-6] || $installer_version == "10.13."[4-6] || $installer_version == "10.14."[4-5] ]]; then
 		installer_prelinkedkernel="$installer_version_short.4"
+	fi
+
+	installer_prelinkedkernel_path="$resources_path/prelinkedkernel/$installer_prelinkedkernel"
+
+	if [[ $modern_prelinkedkernel == "1" && $modern_prelinkedkernel_check == "1" ]]; then
+		installer_prelinkedkernel_path="$resources_path/prelinkedkernel-modern/$installer_prelinkedkernel"
+	fi
+	
+	if [[ $legacy_prelinkedkernel == "1" && $installer_version_short == "10.15" ]]; then
+		installer_prelinkedkernel_path="$resources_path/prelinkedkernel/$installer_prelinkedkernel-legacy"
 	fi
 }
 
@@ -428,7 +428,7 @@ Patch_Unsupported()
 	
 		chflags nouchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
 		rm "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
-		cp "$installer_prelinkedkernel_path"/"$installer_prelinkedkernel"/prelinkedkernel "$installer_volume_path"/System/Library/PrelinkedKernels
+		cp "$installer_prelinkedkernel_path"/prelinkedkernel "$installer_volume_path"/System/Library/PrelinkedKernels
 		chflags uchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
 	
 	echo ${move_up}${erase_line}${text_success}"+ Patched kernel cache."${erase_style}
@@ -528,12 +528,12 @@ Modern_Installer()
 	
 		chflags nouchg /tmp/Base\ System/System/Library/PrelinkedKernels/prelinkedkernel
 		rm /tmp/Base\ System/System/Library/PrelinkedKernels/prelinkedkernel
-		cp "$installer_prelinkedkernel_path"/"$installer_prelinkedkernel"/prelinkedkernel /tmp/Base\ System/System/Library/PrelinkedKernels
+		cp "$installer_prelinkedkernel_path"/prelinkedkernel /tmp/Base\ System/System/Library/PrelinkedKernels
 		chflags uchg /tmp/Base\ System/System/Library/PrelinkedKernels/prelinkedkernel
 
 		chflags nouchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
 		rm "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
-		cp "$installer_prelinkedkernel_path"/"$installer_prelinkedkernel"/prelinkedkernel "$installer_volume_path"/System/Library/PrelinkedKernels
+		cp "$installer_prelinkedkernel_path"/prelinkedkernel "$installer_volume_path"/System/Library/PrelinkedKernels
 		chflags uchg "$installer_volume_path"/System/Library/PrelinkedKernels/prelinkedkernel
 	
 	echo ${move_up}${erase_line}${text_success}"+ Patched kernel cache."${erase_style}

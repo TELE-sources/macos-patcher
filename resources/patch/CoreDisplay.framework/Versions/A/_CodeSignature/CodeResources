@@ -27,10 +27,10 @@
 		<dict>
 			<key>cdhash</key>
 			<data>
-			Pt1mKjV3K2V+IsqepFUUYmTJpkw=
+			mtzS5ygalCXXrmLutqFqXhdlguk=
 			</data>
 			<key>requirement</key>
-			<string>identifier "com.apple.CoreDisplay" and anchor apple</string>
+			<string>cdhash H"9adcd2e7281a9425d7ae62eeb6a16a5e176582e9"</string>
 		</dict>
 		<key>Resources/IOGraphicsProperties.plist</key>
 		<dict>

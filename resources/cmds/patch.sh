@@ -199,6 +199,7 @@ Xserve3,1"
 
 model_airport="iMac7,1
 iMac8,1
+MacBook4,1
 MacBookAir2,1
 MacBookPro4,1
 Macmini3,1
@@ -234,14 +235,6 @@ MacPro3,1"
 
 		model="$model_selected"
 		echo ${text_success}"+ Using $model_selected as model."${erase_style}
-	fi
-
-	if [[ "$model_airport" == *"$model"* ]]; then
-		model_airport="1"
-	fi
-
-	if [[ "$model_apfs" == *"$model"* ]]; then
-		model_apfs="1"
 	fi
 }
 
@@ -329,53 +322,41 @@ Volume_Variables()
 Check_Volume_dosdude()
 {
 	if [[ $volume_patch_variant_dosdude == "1" ]]; then
-		echo ${text_warning}"! A system patch by another patcher already exists."${erase_style}
-		echo ${text_message}"/ What operation would you like to run?"${erase_style}
-		echo ${text_message}"/ Input an operation number."${erase_style}
-		echo ${text_message}"/     1 - Abort and keep system patch"${erase_style}
-		echo ${text_message}"/     2 - Proceed and restore system"${erase_style}
+		echo ${text_warning}"! Your system was patched by another patcher."${erase_style}
+		echo ${text_message}"/ Run the restore tool and reinstall macOS."${erase_style}
 
 		Input_On
-		read -e -p "/ " operation_overwrite
-		Input_Off
-
-		if [[ $operation_overwrite == "1" ]]; then
-			echo "\033[7A"
-			echo ${erase_line}${text_warning}"! A system patch by another patcher already exists."${erase_style}
-			echo ${erase_line}${text_message}"/ Run this tool with another operation."${erase_style}
-
-			Input_On
-			exit
-		fi
-
-		if [[ $operation_overwrite == "2" ]]; then
-			echo "\033[7A"
-			echo ${erase_line}${text_warning}"! A system restore requires a reinstall after completion."
-			echo ${erase_line}${text_message}"/ Are you sure you want to continue?."${erase_style}
-			echo ${erase_line}${text_message}"/ Input an operation number."${erase_style}
-			echo ${erase_line}${text_message}"/     1 - No"${erase_style}
-			echo ${erase_line}${text_message}"/     2 - Yes"${erase_style}
-
-			Input_On
-			read -e -p "/ " operation_confirmation
-			Input_Off
-
-			if [[ $operation_confirmation == "1" ]]; then
-				echo "\033[7A"
-				echo ${erase_line}${text_warning}"! A system patch by another patcher already exists."${erase_style}
-				echo ${erase_line}${text_message}"/ Run this tool with another operation."${erase_style}
-
-				Input_On
-				exit
-			fi
-
-			if [[ $operation_confirmation == "2" ]]; then
-				echo "\033[7A"
-				source "$directory_path"/restore
-				Restore_Volume_dosdude
-			fi
-		fi
+		exit
 	fi
+}
+
+Clean_Volume()
+{
+	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-sud.plist
+	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist
+
+	Output_Off rm -R "$volume_path"/usr/sudagent
+	Output_Off rm "$volume_path"/usr/bin/sudcheck
+	Output_Off rm "$volume_path"/usr/bin/sudutil
+
+	Output_Off rm "$volume_path"/usr/bin/piputil
+	Output_Off rm "$volume_path"/usr/bin/transutil
+
+	if [[ $system_version_short	== "10.15" ]]; then
+		Output_Off rm "$volume_path - Data"/Library/LaunchAgents/com.startup.sudcheck.plist
+		Output_Off rm "$volume_path - Data"/Library/LaunchAgents/com.rmc.pipagent.plist
+
+		Output_Off rm -R "$volume_path - Data"/Library/Application\ Support/com.rmc.pipagent
+	else
+		Output_Off rm "$volume_path"/Library/LaunchAgents/com.startup.sudcheck.plist
+		Output_Off rm "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
+
+		Output_Off rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent
+	fi
+
+	Output_Off rm "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak
+	Output_Off rm "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak
+	Output_Off rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak
 }
 
 Patch_Volume()
@@ -422,6 +403,18 @@ Patch_Volume()
 		fi
 
 	echo ${move_up}${erase_line}${text_success}"+ Patched input drivers."${erase_style}
+
+
+	if [[ $model_metal == *$model* ]]; then
+		echo ${text_warning}"! Metal graphics card compatible model detected."${erase_style}
+		echo ${text_message}"/ These graphics patches are not for Metal cards."${erase_style}
+		echo ${text_message}"/ Input an operation number."${erase_style}
+		echo ${text_message}"/     1 - Install the graphics patches"${erase_style}
+		echo ${text_message}"/     2 - Continue without the graphics patch"${erase_style}
+		Input_On
+		read -e -p "/ " operation_graphis_card
+		Input_Off
+	fi
 
 
 	echo ${text_progress}"> Patching graphics drivers."${erase_style}
@@ -477,25 +470,27 @@ Patch_Volume()
 			cp -R "$resources_path"/NVDAResmanTesla.kext "$volume_path"/System/Library/Extensions
 		fi
 	
-		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]]; then
-			rm -R "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework
-			rm -R "$volume_path"/System/Library/Frameworks/OpenGL.framework
-			cp -R "$resources_path"/GPUSupport.framework "$volume_path"/System/Library/PrivateFrameworks
-			cp -R "$resources_path"/OpenGL.framework "$volume_path"/System/Library/Frameworks
+		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+			cp "$resources_path"/libGPUSupport.dylib "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries
+			cp "$resources_path"/libGFXShared.dylib "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
+			cp "$resources_path"/GLByteCodes.x86_64.bc "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources
+			cp -R "$resources_path"/GLEngine.bundle "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources
 		fi
 	
-		if [[ $volume_version == "10.14."[5-6] ]]; then
+		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			cp -R "$resources_path"/10.14/CoreDisplay.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 		fi
-	
+
 		if [[ $volume_version_short == "10.15" ]]; then
 			cp -R "$resources_path"/IOSurface.kext "$volume_path"/System/Library/Extensions
+		fi
+	
+		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			cp -R "$resources_path"/CoreDisplay.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 			cp -R "$resources_path"/SkyLight.framework "$volume_path"/System/Library/PrivateFrameworks
-			cp "$resources_path"/libCoreFSCache.dylib "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
 		fi
 	
 		if [[ $model == "MacBook4,1" ]]; then
@@ -504,6 +499,16 @@ Patch_Volume()
 			cp -R "$resources_path"/MacBook4,1/AppleIntelGMAX3100GA.plugin "$volume_path"/System/Library/Extensions
 			cp -R "$resources_path"/MacBook4,1/AppleIntelGMAX3100GLDriver.bundle "$volume_path"/System/Library/Extensions
 			cp -R "$resources_path"/MacBook4,1/AppleIntelGMAX3100VADriver.bundle "$volume_path"/System/Library/Extensions
+
+			if [[ -d "$volume_path - Data" ]]; then
+				cp -R "$resources_path"/MacBook4,1/NoSleep.app "$volume_path - Data"/Applications/Utilities
+				cp -R "$resources_path"/MacBook4,1/NoSleep.kext "$volume_path - Data"/Library/Extensions
+				cp "$resources_path"/com.protech.NoSleep.plist "$volume_path - Data"/Library/LaunchAgents
+			else
+				cp -R "$resources_path"/MacBook4,1/NoSleep.app "$volume_path"/Applications/Utilities
+				cp -R "$resources_path"/MacBook4,1/NoSleep.kext "$volume_path"/Library/Extensions
+				cp "$resources_path"/com.protech.NoSleep.plist "$volume_path"/Library/LaunchAgents
+			fi
 		fi
 	
 		if [[ $model == "MacBookPro6,2" ]] && [[ $volume_version == "10.14."[5-6] || $volume_version_short == "10.15" ]]; then
@@ -553,20 +558,14 @@ Patch_Volume()
 			cp -R "$resources_path"/IO80211Family.kext "$volume_path"/System/Library/Extensions
 		fi
 	
-		if [[ $model == "MacBook4,1" ]]; then
-			cp -R "$resources_path"/MacBook4,1/IO80211Family.kext "$volume_path"/System/Library/Extensions
-			cp -R "$resources_path"/MacBook4,1/AppleAirPortBrcm43.kext "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns
-		fi
-	
 		if [[ $volume_version_short == "10.1"[4-5] ]]; then
 			cp -R "$resources_path"/AirPortAtheros40.kext "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns
 		fi
 	
-		if [[ $model_airport == "1" ]]; then
-			cp -R "$resources_path"/AppleAirPortBrcm43224.kext "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns
+		if [[ $model_airport == *$model* ]]; then
+			cp -R "$resources_path"/Broadcom/IO80211Family.kext "$volume_path"/System/Library/Extensions
 			cp -R "$resources_path"/corecapture.kext "$volume_path"/System/Library/Extensions
 			cp -R "$resources_path"/CoreCaptureResponder.kext "$volume_path"/System/Library/Extensions
-			Output_Off rm -R "$volume_path"/System/Library/Extensions/IO80211FamilyV2.kext
 		fi
 
 	echo ${move_up}${erase_line}${text_success}"+ Patched AirPort drivers."${erase_style}
@@ -576,6 +575,7 @@ Patch_Volume()
 		echo ${text_progress}"> Patching Ethernet drivers."${erase_style}
 
 			cp -R "$resources_path"/nvenet.kext "$volume_path"/System/Library/Extensions/IONetworkingFamily.kext/Contents/PlugIns
+			cp -R "$resources_path"/AppleYukon2.kext "$volume_path"/System/Library/Extensions/IONetworkingFamily.kext/Contents/PlugIns
 
 		echo ${move_up}${erase_line}${text_success}"+ Patched Ethernet drivers."${erase_style}
 	fi
@@ -748,17 +748,22 @@ Repair_Permissions()
 		Repair "$volume_path"/System/Library/Extensions/NVDANV50HalTesla.kext
 		Repair "$volume_path"/System/Library/Extensions/NVDAResmanTesla.kext
 	
-		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]]; then
-			Repair "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework
-			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework
+		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+			Repair "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries/libGPUSupport.dylib
+			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGFXShared.dylib
+			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLByteCodes.x86_64.bc
+			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLEngine.bundle
 		fi
 	
-		if [[ $volume_version == "10.14."[5-6] ]]; then
+		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			Repair "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 		fi
 	
 		if [[ $volume_version_short == "10.15" ]]; then
 			Repair "$volume_path"/System/Library/Extensions/IOSurface.kext
+		fi
+
+		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			Repair "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			Repair "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 		fi
@@ -769,6 +774,15 @@ Repair_Permissions()
 			Repair "$volume_path"/System/Library/Extensions/AppleIntelGMAX3100GA.plugin
 			Repair "$volume_path"/System/Library/Extensions/AppleIntelGMAX3100GLDriver.bundle
 			Repair "$volume_path"/System/Library/Extensions/AppleIntelGMAX3100VADriver.bundle
+
+			if [[ -d "$volume_path - Data" ]]; then
+				Repair "$volume_path - Data"/Applications/Utilities/NoSleep.app
+				Repair "$volume_path - Data"/Library/Extensions/NoSleep.kext
+				Repair "$volume_path - Data"/Library/LaunchAgents/com.protech.NoSleep.plist
+			else
+				Repair "$volume_path"/Applications/Utilities/NoSleep.app
+				Repair "$volume_path"/Library/Extensions/NoSleep.kext
+				Repair "$volume_path"/Library/LaunchAgents/com.protech.NoSleep.plist
 		fi
 	
 		if [[ $model == "MacBookPro6,2" ]] && [[ $volume_version == "10.14."[5-6] || $volume_version_short == "10.15" ]]; then
@@ -789,7 +803,7 @@ Repair_Permissions()
 	
 		Repair "$volume_path"/System/Library/Extensions/IO80211Family.kext
 	
-		if [[ $model_airport == "1" ]]; then
+		if [[ $model_airport == *$model* ]]; then
 			Repair "$volume_path"/System/Library/Extensions/corecapture.kext
 			Repair "$volume_path"/System/Library/Extensions/CoreCaptureResponder.kext
 		fi
@@ -820,8 +834,8 @@ Repair_Permissions()
 Input_Operation_APFS()
 {
 	if [[ "$(diskutil info "$volume_name"|grep "APFS")" == *"APFS"* ]]; then
-		if [[ $model_apfs == "1" ]]; then
-			echo ${text_warning}"! Your system doesn't support APFS."${erase_style}
+		if [[ $model_apfs == *$model* ]]; then
+			echo ${text_warning}"! APFS incompatible model detected."${erase_style}
 			echo ${text_message}"/ What operation would you like to run?"${erase_style}
 			echo ${text_message}"/ Input an operation number."${erase_style}
 			echo ${text_message}"/     1 - Install the APFS patch"${erase_style}
@@ -836,8 +850,8 @@ Input_Operation_APFS()
 			fi
 
 			if [[ $operation_apfs == "2" && $volume_patch_apfs == "1" ]]; then
-				source "$directory_path"/restore
-				Restore_APFS
+				echo ${text_warning}"! The APFS patch is already installed."${erase_style}
+				echo ${text_message}"/ Run the restore tool to remove it."${erase_style}
 			fi
 		fi
 	fi
@@ -1034,6 +1048,7 @@ Check_Volume_Version
 Check_Volume_Support
 Volume_Variables
 Check_Volume_dosdude
+Clean_Volume
 Patch_Volume
 Repair_Permissions
 Input_Operation_APFS

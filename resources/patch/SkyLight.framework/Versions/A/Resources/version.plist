@@ -5,12 +5,12 @@
 	<key>BuildAliasOf</key>
 	<string>SkyLight</string>
 	<key>BuildVersion</key>
-	<string>3</string>
+	<string>1</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.600.0</string>
 	<key>ProjectName</key>
 	<string>SkyLight</string>
 	<key>SourceVersion</key>
-	<string>340026000000000</string>
+	<string>340054000000000</string>
 </dict>
 </plist>

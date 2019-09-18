@@ -178,6 +178,7 @@ Xserve3,1"
 
 model_airport="iMac7,1
 iMac8,1
+MacBook4,1
 MacBookAir2,1
 MacBookPro4,1
 Macmini3,1
@@ -324,6 +325,7 @@ Input_Operation()
 		if [[ $volume_patch_variant_dosdude == "1" ]]; then
 			Restore_Volume_dosdude
 		else
+			Clean_Volume
 			Restore_Volume
 		fi
 
@@ -332,6 +334,35 @@ Input_Operation()
 	if [[ $operation_system == "2" && $volume_patch_apfs == "1" ]]; then
 		Restore_APFS
 	fi
+}
+
+Clean_Volume()
+{
+	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-sud.plist
+	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist
+
+	Output_Off rm -R "$volume_path"/usr/sudagent
+	Output_Off rm "$volume_path"/usr/bin/sudcheck
+	Output_Off rm "$volume_path"/usr/bin/sudutil
+
+	Output_Off rm "$volume_path"/usr/bin/piputil
+	Output_Off rm "$volume_path"/usr/bin/transutil
+
+	if [[ $system_version_short	== "10.15" ]]; then
+		Output_Off rm "$volume_path - Data"/Library/LaunchAgents/com.startup.sudcheck.plist
+		Output_Off rm "$volume_path - Data"/Library/LaunchAgents/com.rmc.pipagent.plist
+
+		Output_Off rm -R "$volume_path - Data"/Library/Application\ Support/com.rmc.pipagent
+	else
+		Output_Off rm "$volume_path"/Library/LaunchAgents/com.startup.sudcheck.plist
+		Output_Off rm "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
+
+		Output_Off rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent
+	fi
+
+	Output_Off rm "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak
+	Output_Off rm "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak
+	Output_Off rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak
 }
 
 Restore_Volume()
@@ -432,17 +463,22 @@ Restore_Volume()
 			rm -R "$volume_path"/System/Library/Extensions/NVDAResmanTesla.kext
 		fi
 	
-		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]]; then
-			rm -R "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework
-			rm -R "$volume_path"/System/Library/Frameworks/OpenGL.framework
+		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+			rm "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries/libGPUSupport.dylib
+			rm "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGFXShared.dylib
+			rm "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLByteCodes.x86_64.bc
+			rm -R "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLEngine.bundle
 		fi
 	
-		if [[ $volume_version == "10.14."[5-6] ]]; then
+		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 		fi
 	
 		if [[ $volume_version_short == "10.15" ]]; then
 			rm -R "$volume_path"/System/Library/Extensions/IOSurface.kext
+		fi
+
+		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 		fi
@@ -489,9 +525,9 @@ Restore_Volume()
 	echo ${move_up}${erase_line}${text_success}"+ Removed ambient light sensor drivers patch."${erase_style}
 	
 
-	echo ${text_progress}"> Patching AirPort drivers."${erase_style}
+	echo ${text_progress}"> Removing AirPort drivers patch."${erase_style}
 
-		if [[ $volume_version_short == "10.15" || $model == "MacBook4,1" ]]; then 
+		if [[ $volume_version_short == "10.15" ]]; then 
 			rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext
 		fi
 		
@@ -499,21 +535,22 @@ Restore_Volume()
 			rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns/AirPortAtheros40.kext
 		fi
 		
-		if [[ $model_airport == "1" ]]; then
-			rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns/AppleAirPortBrcm43224.kext
+		if [[ $model_airport == *$model* ]]; then
+			rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext
 			rm -R "$volume_path"/System/Library/Extensions/corecapture.kext
 			rm -R "$volume_path"/System/Library/Extensions/CoreCaptureResponder.kext
 		fi
 
-	echo ${move_up}${erase_line}${text_success}"+ Patched AirPort drivers."${erase_style}
+	echo ${move_up}${erase_line}${text_success}"+ Removed AirPort drivers patch."${erase_style}
 
 
 	if [[ $volume_version_short == "10.15" ]]; then
-		echo ${text_progress}"> Patching Ethernet drivers."${erase_style}
+		echo ${text_progress}"> Removing Ethernet drivers patch."${erase_style}
 
 			rm -R "$volume_path"/System/Library/Extensions/IONetworkingFamily.kext/Contents/PlugIns/nvenet.kext
+			rm -R "$volume_path"/System/Library/Extensions/IONetworkingFamily.kext/Contents/PlugIns/AppleYukon2.kext
 
-		echo ${move_up}${erase_line}${text_success}"+ Patched Ethernet drivers."${erase_style}
+		echo ${move_up}${erase_line}${text_success}"+ Removed Ethernet drivers patch."${erase_style}
 	fi
 
 
@@ -759,5 +796,4 @@ Check_Volume_Version
 Check_Volume_Support
 Volume_Variables
 Input_Operation
-Run_Operation
 End
