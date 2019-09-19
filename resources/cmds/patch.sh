@@ -783,6 +783,7 @@ Repair_Permissions()
 				Repair "$volume_path"/Applications/Utilities/NoSleep.app
 				Repair "$volume_path"/Library/Extensions/NoSleep.kext
 				Repair "$volume_path"/Library/LaunchAgents/com.protech.NoSleep.plist
+			fi
 		fi
 	
 		if [[ $model == "MacBookPro6,2" ]] && [[ $volume_version == "10.14."[5-6] || $volume_version_short == "10.15" ]]; then
