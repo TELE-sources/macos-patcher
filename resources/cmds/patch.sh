@@ -204,6 +204,14 @@ MacBookAir2,1
 MacBookPro4,1
 Macmini3,1
 MacPro3,1"
+
+model_metal="MacPro3,1
+MacPro4,1
+MacPro5,1
+iMac12,1
+iMac12,2
+Xserve2,1
+Xserve3,1"
 	
 	model_detected="$(sysctl -n hw.model)"
 
@@ -472,9 +480,8 @@ Patch_Volume()
 	
 		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			cp "$resources_path"/libGPUSupport.dylib "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries
-			cp "$resources_path"/libGFXShared.dylib "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
-			cp "$resources_path"/GLByteCodes.x86_64.bc "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources
-			cp -R "$resources_path"/GLEngine.bundle "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources
+			rm -R "$volume_path"/System/Library/Frameworks/OpenGL.framework
+			cp -R "$resources_path"/OpenGL.framework "$volume_path"/System/Library/Frameworks
 		fi
 	
 		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
@@ -491,6 +498,7 @@ Patch_Volume()
 			cp -R "$resources_path"/CoreDisplay.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 			cp -R "$resources_path"/SkyLight.framework "$volume_path"/System/Library/PrivateFrameworks
+			cp "$resources_path"/libCoreFSCache.dylib "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
 		fi
 	
 		if [[ $model == "MacBook4,1" ]]; then
@@ -750,9 +758,7 @@ Repair_Permissions()
 	
 		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			Repair "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries/libGPUSupport.dylib
-			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGFXShared.dylib
-			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLByteCodes.x86_64.bc
-			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLEngine.bundle
+			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework
 		fi
 	
 		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then

@@ -465,9 +465,7 @@ Restore_Volume()
 	
 		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
 			rm "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries/libGPUSupport.dylib
-			rm "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGFXShared.dylib
-			rm "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLByteCodes.x86_64.bc
-			rm -R "$volume_path"/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLEngine.bundle
+			rm -R "$volume_path"/System/Library/Frameworks/OpenGL.framework
 		fi
 	
 		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
