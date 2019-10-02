@@ -186,6 +186,7 @@ Xserve3,1"
 
 model_airport="iMac7,1
 iMac8,1
+MacBook4,1
 MacBookAir2,1
 MacBookPro4,1
 Macmini3,1
@@ -218,13 +219,6 @@ MacPro3,1"
 		Input_Off
 		model="$model_selected"
 		echo ${text_success}"+ Using $model_selected as model."${erase_style}
-	fi
-
-	if [[ "$model_airport" == *"$model"* ]]; then
-		model_airport="1"
-	fi
-	if [[ "$model_apfs" == *"$model"* ]]; then
-		model_apfs="1"
 	fi
 }
 
@@ -269,32 +263,18 @@ Mount_EFI()
 
 Check_Volume_Version()
 {
-	echo ${text_progress}"> Checking system version."${erase_style}	
+	echo ${text_progress}"> Checking system version."${erase_style}
 	volume_version="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductVersion)"
 	volume_version_short="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductVersion | cut -c-5)"
-
+	
 	volume_build="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductBuildVersion)"
-
-	if [[ -e "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist ]]; then
-		volume_version_pip="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist ProductVersion)"
-		volume_version_pip_short="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist ProductVersion | cut -c-5)"
-
-		volume_build_pip="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist ProductBuildVersion)"
-	fi
-
-	if [[ ! $volume_version == $volume_version_pip ]]; then
-		volume_versions_differ="1"
-	fi
-	if [[ ! $volume_build == $volume_build_pip ]]; then
-		volume_builds_differ="1"
-	fi
 	echo ${move_up}${erase_line}${text_success}"+ Checked system version."${erase_style}
 }
 
 Check_Volume_Support()
 {
 	echo ${text_progress}"> Checking system support."${erase_style}
-	if [[ $volume_version_short == "10.1"[2-4] ]]; then
+	if [[ $volume_version_short == "10.1"[2-5] ]]; then
 		echo ${move_up}${erase_line}${text_success}"+ System support check passed."${erase_style}
 	else
 		echo ${text_error}"- System support check failed."${erase_style}
@@ -304,94 +284,47 @@ Check_Volume_Support()
 	fi
 }
 
-Check_Volume_dosdude()
-{
-	if [ -e $volume_path/Library/LaunchAgents/com.dd1* ] || [ -e $volume_path/Library/LaunchAgents/com.dosdude1* ]; then
-		echo ${text_warning}"! A system patch by another patcher already exists."${erase_style}
-		echo ${text_message}"/ What operation would you like to run?"${erase_style}
-		echo ${text_message}"/ Input an operation number."${erase_style}
-		echo ${text_message}"/     1 - Abort and keep system patch"${erase_style}
-		echo ${text_message}"/     2 - Proceed and restore system"${erase_style}
-		Input_On
-		read -e -p "/ " operation_overwrite
-		Input_Off
-
-		if [[ $operation_overwrite == "1" ]]; then
-			echo "\033[7A"
-			echo ${erase_line}${text_warning}"! A system patch by another patcher already exists."${erase_style}
-			echo ${erase_line}${text_message}"/ Run this tool with another operation."${erase_style}
-			Input_On
-			exit
-		fi
-
-		if [[ $operation_overwrite == "2" ]]; then
-			echo "\033[7A"
-			echo ${erase_line}${text_warning}"! A system restore requires a reinstall after completion."
-			echo ${erase_line}${text_message}"/ Are you sure you want to continue?."${erase_style}
-			echo ${erase_line}${text_message}"/ Input an operation number."${erase_style}
-			echo ${erase_line}${text_message}"/     1 - No"${erase_style}
-			echo ${erase_line}${text_message}"/     2 - Yes"${erase_style}
-			Input_On
-			read -e -p "/ " operation_confirmation
-			Input_Off
-
-			if [[ $operation_confirmation == "1" ]]; then
-				echo "\033[7A"
-				echo ${erase_line}${text_warning}"! A system patch by another patcher already exists."${erase_style}
-				echo ${erase_line}${text_message}"/ Run this tool with another operation."${erase_style}
-				Input_On
-				exit
-			fi
-
-			if [[ $operation_confirmation == "2" ]]; then
-				echo "\033[7A"
-				source "$directory_path"/restore
-				Restore_Volume_dosdude
-			fi
-		fi
-	fi
-}
-
 Volume_Variables()
 {
+	if [ -e $volume_path/Library/LaunchAgents/com.dd1* ] || [ -e $volume_path/Library/LaunchAgents/com.dosdude1* ]; then
+		volume_patch_variant_dosdude="1"
+	fi
+
 	if [[ -e /Volumes/EFI/EFI/BOOT/BOOTX64.efi && -e /Volumes/EFI/EFI/apfs.efi ]]; then
 		volume_patch_apfs="1"
 	fi
+}
 
-	if [[ -e "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak ]]; then
-		volume_patch_hybrid_mode="1"
-	fi
-	if [[ -e "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak ]]; then
-		volume_patch_flat_mode="1"
-	fi
-	if [[ -e "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak ]]; then
-		volume_patch_menubar="1"
+Check_Volume_dosdude()
+{
+	if [[ $volume_patch_variant_dosdude == "1" ]]; then
+		echo ${text_warning}"! Your system was patched by another patcher."${erase_style}
+		echo ${text_message}"/ Run the restore tool and reinstall macOS."${erase_style}
+		Input_On
+		exit
 	fi
 }
 
 Clean_Volume()
 {
-	if [[ -e "$volume_path"/System/Library/CoreServices/SystemVersion-sud.plist ]]; then
-		rm "$volume_path"/System/Library/CoreServices/SystemVersion-sud.plist
-	fi
+	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-sud.plist
+	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist
 
-	if [[ -e "$volume_path"/Library/LaunchAgents/com.startup.sudcheck.plist ]]; then
-		rm "$volume_path"/Library/LaunchAgents/com.startup.sudcheck.plist
-	fi
+	Output_Off rm -R "$volume_path"/usr/sudagent
+	Output_Off rm "$volume_path"/usr/bin/sudcheck
+	Output_Off rm "$volume_path"/usr/bin/sudutil
 
-	if [[ -d "$volume_path"/usr/sudagent ]]; then
-		rm -R "$volume_path"/usr/sudagent
-	fi
-	if [[ -e "$volume_path"/usr/bin/sudcheck ]]; then
-		rm "$volume_path"/usr/bin/sudcheck
-	fi
-	if [[ -e "$volume_path"/usr/bin/sudutil ]]; then
-		rm "$volume_path"/usr/bin/sudutil
-	fi
+	Output_Off rm "$volume_path"/usr/bin/piputil
+	Output_Off rm "$volume_path"/usr/bin/transutil
 
-	if [[ -d "$volume_path"/Library/Application\ Support/com.rmc.pipagent/pipagent.app ]]; then
-		rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent/pipagent.app
-	fi
+	Output_Off rm "$volume_path"/Library/LaunchAgents/com.startup.sudcheck.plist
+	Output_Off rm "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
+
+	Output_Off rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent
+
+	Output_Off rm "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak
+	Output_Off rm "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak
+	Output_Off rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak
 }
 
 Patch_Volume()
@@ -496,6 +429,10 @@ Patch_Volume()
 		cp -R "$resources_path"/MacBook4,1/AppleIntelGMAX3100GA.plugin "$volume_path"/System/Library/Extensions
 		cp -R "$resources_path"/MacBook4,1/AppleIntelGMAX3100GLDriver.bundle "$volume_path"/System/Library/Extensions
 		cp -R "$resources_path"/MacBook4,1/AppleIntelGMAX3100VADriver.bundle "$volume_path"/System/Library/Extensions
+
+		cp -R "$resources_path"/MacBook4,1/NoSleep.app "$volume_path"/Applications/Utilities
+		cp -R "$resources_path"/MacBook4,1/NoSleep.kext "$volume_path"/Library/Extensions
+		cp "$resources_path"/com.protech.NoSleep.plist "$volume_path"/Library/LaunchAgents
 	fi
 
 	if [[ $model == "MacBookPro6,2" && $volume_version == "10.14."[5-6] ]]; then
@@ -528,7 +465,7 @@ Patch_Volume()
 	cp -R "$resources_path"/AmbientLightSensorHID.plugin "$volume_path"/System/Library/Extensions/AppleSMCLMU.kext/Contents/PlugIns/
 	echo ${move_up}${erase_line}${text_success}"+ Patched ambient light sensor drivers."${erase_style}
 
-	if [[ $model_airport == "1" || $model == "MacBook4,1" || $volume_version_short == "10.14" ]]; then
+	if [[ $model_airport == *$model* || $volume_version_short == "10.14" ]]; then
 		echo ${text_progress}"> Patching AirPort drivers."${erase_style}
 	fi
 
@@ -536,19 +473,13 @@ Patch_Volume()
 		cp -R "$resources_path"/AirPortAtheros40.kext "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns
 	fi
 
-	if [[ $model_airport == "1" ]]; then
-		cp -R "$resources_path"/AppleAirPortBrcm43224.kext "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns
+	if [[ $model_airport == *$model* ]]; then
+		cp -R "$resources_path"/Broadcom/IO80211Family.kext "$volume_path"/System/Library/Extensions
 		cp -R "$resources_path"/corecapture.kext "$volume_path"/System/Library/Extensions
 		cp -R "$resources_path"/CoreCaptureResponder.kext "$volume_path"/System/Library/Extensions
-		Output_Off rm -R "$volume_path"/System/Library/Extensions/IO80211FamilyV2.kext
 	fi
 
-	if [[ $model == "MacBook4,1" ]]; then
-		cp -R "$resources_path"/MacBook4,1/IO80211Family.kext "$volume_path"/System/Library/Extensions
-		cp -R "$resources_path"/MacBook4,1/AppleAirPortBrcm43.kext "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns
-	fi
-
-	if [[ $model_airport == "1" || $model == "MacBook4,1" || $volume_version_short == "10.14" ]]; then
+	if [[ $model_airport == *$model* || $volume_version_short == "10.14" ]]; then
 		echo ${move_up}${erase_line}${text_success}"+ Patched AirPort drivers."${erase_style}
 	fi
 
@@ -593,37 +524,6 @@ Patch_Volume()
 	echo ${text_progress}"> Patching System Integrity Protection."${erase_style}
 	cp -R "$resources_path"/SIPManager.kext "$volume_path"/System/Library/Extensions
 	echo ${move_up}${erase_line}${text_success}"+ Patched System Integrity Protection."${erase_style}
-
-	echo ${text_progress}"> Copying patcher utilities."${erase_style}
-	if [[ ! -d "$volume_path"/Library/Application\ Support/com.rmc.pipagent ]]; then
-		mkdir "$volume_path"/Library/Application\ Support/com.rmc.pipagent
-	fi
-
-	cp "$volume_path/$system_version_path" "$volume_path/$system_version_pip_path"
-	cp "$resources_path"/com.rmc.pipagent.plist "$volume_path"/Library/LaunchAgents
-	cp -R "$resources_path"/Patch\ Integrity\ Protection.app "$volume_path"/Library/Application\ Support/com.rmc.pipagent/
-	cp "$resources_path"/cmds/pipagent.sh "$volume_path"/Library/Application\ Support/com.rmc.pipagent/pipagent
-	cp "$resources_path"/cmds/piputil.sh "$volume_path"/usr/bin/piputil
-	chmod +x "$volume_path"/Library/Application\ Support/com.rmc.pipagent/pipagent
-	chmod +x "$volume_path"/usr/bin/piputil
-
-	if [[ $volume_version_short == "10.14" ]]; then
-		cp "$resources_path"/cmds/transutil.sh "$volume_path"/usr/bin/transutil
-		chmod +x "$volume_path"/usr/bin/transutil
-
-		if [[ $volume_versions_differ == "1" || $volume_builds_differ == "1" ]]; then
-			if [[ $volume_patch_hybrid_mode == "1" ]]; then
-				rm "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak
-			fi
-			if [[ $volume_patch_flat_mode == "1" ]]; then
-				rm "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak
-			fi
-			if [[ $volume_patch_menubar == "1" ]]; then
-				rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak
-			fi
-		fi
-	fi
-	echo ${move_up}${erase_line}${text_success}"+ Copied patcher utilities."${erase_style}
 }
 
 Repair()
@@ -719,6 +619,10 @@ Repair_Permissions()
 		Repair "$volume_path"/System/Library/Extensions/AppleIntelGMAX3100GA.plugin
 		Repair "$volume_path"/System/Library/Extensions/AppleIntelGMAX3100GLDriver.bundle
 		Repair "$volume_path"/System/Library/Extensions/AppleIntelGMAX3100VADriver.bundle
+
+		Repair "$volume_path"/Applications/Utilities/NoSleep.app
+		Repair "$volume_path"/Library/Extensions/NoSleep.kext
+		Repair "$volume_path"/Library/LaunchAgents/com.protech.NoSleep.plist
 	fi
 
 	if [[ $model == "MacBookPro6,2" && $volume_version == "10.14."[5-6] ]]; then
@@ -737,15 +641,13 @@ Repair_Permissions()
 
 	Repair "$volume_path"/System/Library/Extensions/AppleSMCLMU.kext
 
-	if [[ $model_airport == "1" ]]; then
+	if [[ $model_airport == *$model* ]]; then
 		Repair "$volume_path"/System/Library/Extensions/IO80211Family.kext
 		Repair "$volume_path"/System/Library/Extensions/corecapture.kext
 		Repair "$volume_path"/System/Library/Extensions/CoreCaptureResponder.kext
 	fi
 
 	if [[ $model == "MacBook4,1" ]]; then
-		Repair "$volume_path"/System/Library/Extensions/IO80211Family.kext
-
 		Repair "$volume_path"/System/Library/Extensions/IOBluetoothFamily.kext
 		Repair "$volume_path"/System/Library/Extensions/IOBluetoothHIDDriver.kext
 	fi
@@ -756,32 +658,30 @@ Repair_Permissions()
 	Repair "$volume_path"/System/Library/LaunchDaemons/com.apple.softwareupdated.plist 
 
 	Repair "$volume_path"/System/Library/Extensions/SIPManager.kext
-
-	Repair "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
-	Repair "$volume_path"/Library/Application\ Support/com.rmc.pipagent
-	Repair "$volume_path"/usr/bin/piputil
-
-	if [[ $volume_version_short == "10.14" ]]; then
-		Repair "$volume_path"/usr/bin/transutil
-	fi
 	echo ${move_up}${erase_line}${text_success}"+ Repaired permissions."${erase_style}
 }
 
 Input_Operation_APFS()
 {
 	if [[ "$(diskutil info "$volume_name"|grep "APFS")" == *"APFS"* ]]; then
-		if [[ $model_apfs == "1" ]]; then
-			echo ${text_warning}"! Your system doesn't support APFS."${erase_style}
+		if [[ $model_apfs == *$model* ]]; then
+			echo ${text_warning}"! APFS incompatible model detected."${erase_style}
 			echo ${text_message}"/ What operation would you like to run?"${erase_style}
 			echo ${text_message}"/ Input an operation number."${erase_style}
 			echo ${text_message}"/     1 - Install the APFS patch"${erase_style}
 			echo ${text_message}"/     2 - Continue without the APFS patch"${erase_style}
+
 			Input_On
 			read -e -p "/ " operation_apfs
 			Input_Off
 
 			if [[ $operation_apfs == "1" ]]; then
 				Patch_APFS
+			fi
+
+			if [[ $operation_apfs == "2" && $volume_patch_apfs == "1" ]]; then
+				echo ${text_warning}"! The APFS patch is already installed."${erase_style}
+				echo ${text_message}"/ Run the restore tool to remove it."${erase_style}
 			fi
 		fi
 	fi

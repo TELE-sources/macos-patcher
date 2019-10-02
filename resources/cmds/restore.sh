@@ -168,6 +168,7 @@ Xserve3,1"
 
 model_airport="iMac7,1
 iMac8,1
+MacBook4,1
 MacBookAir2,1
 MacBookPro4,1
 Macmini3,1
@@ -200,13 +201,6 @@ MacPro3,1"
 		Input_Off
 		model="$model_selected"
 		echo ${text_success}"+ Using $model_selected as model."${erase_style}
-	fi
-
-	if [[ "$model_airport" == *"$model"* ]]; then
-		model_airport="1"
-	fi
-	if [[ "$model_apfs" == *"$model"* ]]; then
-		model_apfs="1"
 	fi
 }
 
@@ -251,10 +245,10 @@ Mount_EFI()
 
 Check_Volume_Version()
 {
-	echo ${text_progress}"> Checking system version."${erase_style}	
+	echo ${text_progress}"> Checking system version."${erase_style}
 	volume_version="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductVersion)"
 	volume_version_short="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductVersion | cut -c-5)"
-
+	
 	volume_build="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductBuildVersion)"
 	echo ${move_up}${erase_line}${text_success}"+ Checked system version."${erase_style}
 }
@@ -262,7 +256,7 @@ Check_Volume_Version()
 Check_Volume_Support()
 {
 	echo ${text_progress}"> Checking system support."${erase_style}
-	if [[ $volume_version_short == "10.1"[2-4] ]]; then
+	if [[ $volume_version_short == "10.1"[2-5] ]]; then
 		echo ${move_up}${erase_line}${text_success}"+ System support check passed."${erase_style}
 	else
 		echo ${text_error}"- System support check failed."${erase_style}
@@ -281,67 +275,23 @@ Volume_Variables()
 	if [[ -e /Volumes/EFI/EFI/BOOT/BOOTX64.efi && -e /Volumes/EFI/EFI/apfs.efi ]]; then
 		volume_patch_apfs="1"
 	fi
-
-	if [[ -e "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak ]]; then
-		volume_patch_hybrid_mode="1"
-	fi
-	if [[ -e "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak ]]; then
-		volume_patch_flat_mode="1"
-	fi
-	if [[ -e "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak ]]; then
-		volume_patch_menubar="1"
-	fi
 }
 
 Input_Operation()
 {
 	echo ${text_message}"/ What operation would you like to run?"${erase_style}
 	echo ${text_message}"/ Input an operation number."${erase_style}
-	echo ${text_message}"/     1 - Remove system patches"${erase_style}
-	echo ${text_message}"/     2 - Remove transparency patches"${erase_style}
+	echo ${text_message}"/     1 - Remove all system patches"${erase_style}
+
+	if [[ $volume_patch_apfs == "1" ]]; then
+		echo ${text_message}"/     2 - Remove APFS system patch"${erase_style}
+	fi
 	Input_On
-	read -e -p "/ " operation
+	read -e -p "/ " operation_system
 	Input_Off
 
-	if [[ $operation == "1" ]]; then
-		echo ${text_message}"/ What operation would you like to run?"${erase_style}
-		echo ${text_message}"/ Input an operation number."${erase_style}
-		echo ${text_message}"/     1 - Remove all system patches"${erase_style}
-
-		if [[ $volume_patch_apfs == "1" ]]; then
-			echo ${text_message}"/     2 - Remove APFS system patch"${erase_style}
-		fi
-		Input_On
-		read -e -p "/ " operation_system
-		Input_Off
-	fi
-
-	if [[ $operation == "2" ]]; then
-		if [[ $volume_patch_hybrid_mode == "1" || $volume_patch_flat_mode == "1" ]]; then
-			echo ${text_message}"/ What operation would you like to run?"${erase_style}
-			echo ${text_message}"/ Input an operation number."${erase_style}
-
-			if [[ $volume_patch_hybrid_mode == "1" ]]; then
-				echo ${text_message}"/     1 - Remove hybrid mode patch"${erase_style}
-			fi
-
-			if [[ $volume_patch_flat_mode == "1" ]]; then
-				echo ${text_message}"/     1 - Remove flat mode patch"${erase_style}
-			fi
-		else
-			echo ${text_warning}"! No transparency patches are installed."${erase_style}
-			echo ${text_message}"/ Run this tool with another operation."${erase_style}
-			Input_Operation
-		fi
-		Input_On
-		read -e -p "/ " operation_transparency
-		Input_Off
-	fi
-}
-
-Run_Operation()
-{
 	if [[ $operation_system == "1" ]]; then
+
 		if [[ $volume_patch_variant_dosdude == "1" ]]; then
 			Restore_Volume_dosdude
 		else
@@ -349,52 +299,33 @@ Run_Operation()
 			Restore_Volume
 		fi
 
-		if [[ $volume_patch_hybrid_mode == "1" ]]; then
-			Restore_Hybrid_Mode
-			Repair_Permissions_Volume
-		fi
-		if [[ $volume_patch_flat_mode == "1" ]]; then
-			Restore_Flat_Mode
-			Repair_Permissions_Volume
-		fi
-	fi
-	if [[ $operation_system == "2" && $volume_patch_apfs == "1" ]]; then
-		Restore_APFS
 	fi
 
-	if [[ $operation_transparency == "1" && $volume_patch_hybrid_mode == "1" ]]; then
-		Restore_Hybrid_Mode
-		Repair_Permissions_Volume
-	fi
-	if [[ $operation_transparency == "1" && $volume_patch_flat_mode == "1" ]]; then
-		Restore_Flat_Mode
-		Repair_Permissions_Volume
+	if [[ $operation_system == "2" && $volume_patch_apfs == "1" ]]; then
+		Restore_APFS
 	fi
 }
 
 Clean_Volume()
 {
-	if [[ -e "$volume_path"/System/Library/CoreServices/SystemVersion-sud.plist ]]; then
-		rm "$volume_path"/System/Library/CoreServices/SystemVersion-sud.plist
-	fi
+	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-sud.plist
+	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist
 
-	if [[ -e "$volume_path"/Library/LaunchAgents/com.startup.sudcheck.plist ]]; then
-		rm "$volume_path"/Library/LaunchAgents/com.startup.sudcheck.plist
-	fi
+	Output_Off rm -R "$volume_path"/usr/sudagent
+	Output_Off rm "$volume_path"/usr/bin/sudcheck
+	Output_Off rm "$volume_path"/usr/bin/sudutil
 
-	if [[ -d "$volume_path"/usr/sudagent ]]; then
-		rm -R "$volume_path"/usr/sudagent
-	fi
-	if [[ -e "$volume_path"/usr/bin/sudcheck ]]; then
-		rm "$volume_path"/usr/bin/sudcheck
-	fi
-	if [[ -e "$volume_path"/usr/bin/sudutil ]]; then
-		rm "$volume_path"/usr/bin/sudutil
-	fi
+	Output_Off rm "$volume_path"/usr/bin/piputil
+	Output_Off rm "$volume_path"/usr/bin/transutil
 
-	if [[ -d "$volume_path"/Library/Application\ Support/com.rmc.pipagent/pipagent.app ]]; then
-		rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent/pipagent.app
-	fi
+	Output_Off rm "$volume_path"/Library/LaunchAgents/com.startup.sudcheck.plist
+	Output_Off rm "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
+
+	Output_Off rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent
+
+	Output_Off rm "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak
+	Output_Off rm "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak
+	Output_Off rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak
 }
 
 Restore_Volume()
@@ -521,7 +452,7 @@ Restore_Volume()
 	rm -R "$volume_path"/System/Library/Extensions/AppleSMCLMU.kext/Contents/PlugIns/AmbientLightSensorHID.plugin
 	echo ${move_up}${erase_line}${text_success}"+ Removed ambient light sensor drivers patch."${erase_style}
 
-	if [[ $model_airport == "1" || $model == "MacBook4,1" || $volume_version_short == "10.14" ]]; then
+	if [[ $model_airport == *$model* || $volume_version_short == "10.14" ]]; then
 		echo ${text_progress}"> Removing AirPort drivers patch."${erase_style}
 	fi
 
@@ -529,17 +460,13 @@ Restore_Volume()
 		rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns/AirPortAtheros40.kext
 	fi
 
-	if [[ $model_airport == "1" ]]; then
-		rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext/Contents/PlugIns/AppleAirPortBrcm43224.kext
+	if [[ $model_airport == *$model* ]]; then
+		rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext
 		rm -R "$volume_path"/System/Library/Extensions/corecapture.kext
 		rm -R "$volume_path"/System/Library/Extensions/CoreCaptureResponder.kext
 	fi
 
-	if [[ $model == "MacBook4,1" ]]; then
-		rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext
-	fi
-
-	if [[ $model_airport == "1" || $model == "MacBook4,1" || $volume_version_short == "10.14" ]]; then
+	if [[ $model_airport == *$model* || $volume_version_short == "10.14" ]]; then
 		echo ${move_up}${erase_line}${text_success}"+ Removed AirPort drivers patch."${erase_style}
 	fi
 
@@ -564,17 +491,6 @@ Restore_Volume()
 	echo ${text_progress}"> Removing System Integrity Protection patch."${erase_style}
 	rm -R "$volume_path"/System/Library/Extensions/SIPManager.kext
 	echo ${move_up}${erase_line}${text_success}"+ Removed System Integrity Protection patch."${erase_style}
-
-	echo ${text_progress}"> Removing patcher utilities."${erase_style}
-	rm "$volume_path/$system_version_pip_path"
-	rm "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
-	rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent
-	rm "$volume_path"/usr/bin/piputil
-
-	if [[ $volume_version_short == "10.14" ]]; then
-		rm "$volume_path"/usr/bin/transutil
-	fi
-	echo ${move_up}${erase_line}${text_success}"+ Removed patcher utilities."${erase_style}
 }
 
 Restore_Volume_dosdude()
@@ -709,32 +625,6 @@ Restore_APFS()
 	echo ${move_up}${erase_line}${text_success}"+ Removed APFS system patch."${erase_style}
 }
 
-Restore_Hybrid_Mode()
-{
-	echo ${text_progress}"> Removing Hybrid Mode patch."${erase_style}
-	rm "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI
-	mv "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI
-
-	if [[ $volume_patch_menubar == "1" ]]; then
-		rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox
-		mv "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox
-	fi
-	echo ${move_up}${erase_line}${text_success}"+ Removed Hybrid Mode."${erase_style}
-}
-
-Restore_Flat_Mode()
-{
-	echo ${text_progress}"> Removing Flat Mode patch."${erase_style}
-	rm "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit
-	mv "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit
-
-	if [[ $volume_patch_menubar == "1" ]]; then
-		rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox
-		mv "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox
-	fi
-	echo ${move_up}${erase_line}${text_success}"+ Removed Flat Mode patch."${erase_style}
-}
-
 Repair()
 {
 	chown -R 0:0 "$@"
@@ -773,5 +663,4 @@ Check_Volume_Version
 Check_Volume_Support
 Volume_Variables
 Input_Operation
-Run_Operation
 End
