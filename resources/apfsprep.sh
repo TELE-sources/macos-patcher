@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 parameters="${1}${2}${3}${4}${5}${6}${7}${8}${9}"
 
@@ -37,7 +37,15 @@ Path_Variables()
 	script_path="${0}"
 	directory_path="${0%/*}"
 
-	resources_path="/usr/patch"
+	resources_path="$directory_path/patch"
+
+	if [[ -d "/patch" ]]; then
+		resources_path="/patch"
+	fi
+	
+	if [[ -d "/Volumes/Image Volume/patch" ]]; then
+		resources_path="/Volumes/Image Volume/patch"
+	fi
 }
 
 Input_Off()
@@ -61,33 +69,37 @@ Output_Off()
 
 Check_Environment()
 {
-	echo ${text_progress}"> Checking system environment."${erase_style}
+	echo -e ${text_progress}"> Checking system environment."${erase_style}
 
-	if [ ! -d /Install\ *.app ]; then
-		exit
+	if [ -d /Install\ *.app ]; then
+		environment="installer"
 	fi
 
-	echo ${move_up}${erase_line}${text_success}"+ Checked system environment."${erase_style}
+	if [ ! -d /Install\ *.app ]; then
+		environment="system"
+	fi
+
+	echo -e ${move_up}${erase_line}${text_success}"+ Checked system environment."${erase_style}
 }
 
 Check_Root()
 {
-	echo ${text_progress}"> Checking for root permissions."${erase_style}
+	echo -e ${text_progress}"> Checking for root permissions."${erase_style}
 
 	if [[ $environment == "installer" ]]; then
 		root_check="passed"
-		echo ${move_up}${erase_line}${text_success}"+ Root permissions check passed."${erase_style}
+		echo -e ${move_up}${erase_line}${text_success}"+ Root permissions check passed."${erase_style}
 	else
 
 		if [[ $(whoami) == "root" && $environment == "system" ]]; then
 			root_check="passed"
-			echo ${move_up}${erase_line}${text_success}"+ Root permissions check passed."${erase_style}
+			echo -e ${move_up}${erase_line}${text_success}"+ Root permissions check passed."${erase_style}
 		fi
 
 		if [[ ! $(whoami) == "root" && $environment == "system" ]]; then
 			root_check="failed"
-			echo ${text_error}"- Root permissions check failed."${erase_style}
-			echo ${text_message}"/ Run this tool with root permissions."${erase_style}
+			echo -e ${text_error}"- Root permissions check failed."${erase_style}
+			echo -e ${text_message}"/ Run this tool with root permissions."${erase_style}
 
 			Input_On
 			exit
@@ -98,15 +110,15 @@ Check_Root()
 
 Check_SIP()
 {
-	echo ${text_progress}"> Checking System Integrity Protection status."${erase_style}
+	echo -e ${text_progress}"> Checking System Integrity Protection status."${erase_style}
 
 	if [[ $(csrutil status | grep status) == *disabled* || $(csrutil status | grep status) == *unknown* ]]; then
-		echo ${move_up}${erase_line}${text_success}"+ System Integrity Protection status check passed."${erase_style}
+		echo -e ${move_up}${erase_line}${text_success}"+ System Integrity Protection status check passed."${erase_style}
 	fi
 
 	if [[ $(csrutil status | grep status) == *enabled* ]]; then
-		echo ${text_error}"- System Integrity Protection status check failed."${erase_style}
-		echo ${text_message}"/ Run this tool with System Integrity Protection disabled."${erase_style}
+		echo -e ${text_error}"- System Integrity Protection status check failed."${erase_style}
+		echo -e ${text_message}"/ Run this tool with System Integrity Protection disabled."${erase_style}
 
 		Input_On
 		exit
@@ -115,17 +127,17 @@ Check_SIP()
 
 Check_Resources()
 {
-	echo ${text_progress}"> Checking for resources."${erase_style}
+	echo -e ${text_progress}"> Checking for resources."${erase_style}
 
 	if [[ -d "$resources_path" ]]; then
 		resources_check="passed"
-		echo ${move_up}${erase_line}${text_success}"+ Resources check passed."${erase_style}
+		echo -e ${move_up}${erase_line}${text_success}"+ Resources check passed."${erase_style}
 	fi
 
 	if [[ ! -d "$resources_path" ]]; then
 		resources_check="failed"
-		echo ${text_error}"- Resources check failed."${erase_style}
-		echo ${text_message}"/ Run this tool with the required resources."${erase_style}
+		echo -e ${text_error}"- Resources check failed."${erase_style}
+		echo -e ${text_message}"/ Run this tool with the required resources."${erase_style}
 
 		Input_On
 		exit
@@ -205,34 +217,34 @@ MacPro3,1"
 	
 	model_detected="$(sysctl -n hw.model)"
 
-	echo ${text_progress}"> Detecting model."${erase_style}
-	echo ${move_up}${erase_line}${text_success}"+ Detected model as $model_detected."${erase_style}
+	echo -e ${text_progress}"> Detecting model."${erase_style}
+	echo -e ${move_up}${erase_line}${text_success}"+ Detected model as $model_detected."${erase_style}
 
-	echo ${text_message}"/ What model would you like to use?"${erase_style}
-	echo ${text_message}"/ Input an model option."${erase_style}
-	echo ${text_message}"/     1 - Use detected model"${erase_style}
-	echo ${text_message}"/     2 - Use manually selected model"${erase_style}
+	echo -e ${text_message}"/ What model would you like to use?"${erase_style}
+	echo -e ${text_message}"/ Input an model option."${erase_style}
+	echo -e ${text_message}"/     1 - Use detected model"${erase_style}
+	echo -e ${text_message}"/     2 - Use manually selected model"${erase_style}
 
 	Input_On
-	echo "/ 1"${erase_style}
+	echo -e "/ 1"${erase_style}
 	Input_Off
 
 	# if [[ $model_option == "1" ]]; then
 		model="$model_detected"
-		echo ${text_success}"+ Using $model_detected as model."${erase_style}
+		echo -e ${text_success}"+ Using $model_detected as model."${erase_style}
 	# fi
 
 	if [[ $model_option == "2" ]]; then
-		echo ${text_message}"/ What model would you like to use?"${erase_style}
-		echo ${text_message}"/ Input your model."${erase_style}
-		echo ${text_message}"$model_list"${erase_style}
+		echo -e ${text_message}"/ What model would you like to use?"${erase_style}
+		echo -e ${text_message}"/ Input your model."${erase_style}
+		echo -e ${text_message}"$model_list"${erase_style}
 
 		Input_On
 		read -e -p "/ " model_selected
 		Input_Off
 
 		model="$model_selected"
-		echo ${text_success}"+ Using $model_selected as model."${erase_style}
+		echo -e ${text_success}"+ Using $model_selected as model."${erase_style}
 	fi
 
 	if [[ "$model_apfs" == *"$model"* ]]; then
@@ -242,14 +254,14 @@ MacPro3,1"
 
 Input_Volume()
 {
-	echo ${text_message}"/ What volume would you like to use?"${erase_style}
-	echo ${text_message}"/ Input a volume name."${erase_style}
+	echo -e ${text_message}"/ What volume would you like to use?"${erase_style}
+	echo -e ${text_message}"/ Input a volume name."${erase_style}
 
 	for volume_path in /Volumes/*; do
 		volume_name="${volume_path#/Volumes/}"
 
 		if [[ ! "$volume_name" == com.apple* ]]; then
-			echo ${text_message}"/     ${volume_name}"${erase_style} | sort -V
+			echo -e ${text_message}"/     ${volume_name}"${erase_style} | sort
 		fi
 
 	done
@@ -264,7 +276,7 @@ Input_Volume()
 	fi
 
 	Input_On
-	echo "/ $volume_name"${erase_style}
+	echo -e "/ $volume_name"${erase_style}
 	Input_Off
 }
 
@@ -292,25 +304,25 @@ Mount_EFI()
 
 Check_Volume_Version()
 {
-	echo ${text_progress}"> Checking system version."${erase_style}
+	echo -e ${text_progress}"> Checking system version."${erase_style}
 
 		volume_version="$(defaults read "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/SystemVersion.plist ProductVersion)"
 		volume_version_short="$(defaults read "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/SystemVersion.plist ProductVersion | cut -c-5)"
 	
 		volume_build="$(defaults read "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/SystemVersion.plist ProductBuildVersion)"
 
-	echo ${move_up}${erase_line}${text_success}"+ Checked system version."${erase_style}
+	echo -e ${move_up}${erase_line}${text_success}"+ Checked system version."${erase_style}
 }
 
 Check_Volume_Support()
 {
-	echo ${text_progress}"> Checking system support."${erase_style}
+	echo -e ${text_progress}"> Checking system support."${erase_style}
 
 	if [[ $volume_version_short == "10.15" ]]; then
-		echo ${move_up}${erase_line}${text_success}"+ System support check passed."${erase_style}
+		echo -e ${move_up}${erase_line}${text_success}"+ System support check passed."${erase_style}
 	else
-		echo ${text_error}"- System support check failed."${erase_style}
-		echo ${text_message}"/ Run this tool on a supported system."${erase_style}
+		echo -e ${text_error}"- System support check failed."${erase_style}
+		echo -e ${text_message}"/ Run this tool on a supported system."${erase_style}
 
 		Input_On
 		exit
@@ -319,25 +331,25 @@ Check_Volume_Support()
 
 Patch_Volume()
 {
-	echo ${text_progress}"> Patching platform support check."${erase_style}
+	echo -e ${text_progress}"> Patching platform support check."${erase_style}
 
 		Output_Off rm "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/PlatformSupport.plist
 
-	echo ${move_up}${erase_line}${text_success}"+ Patched platform support check."${erase_style}
+	echo -e ${move_up}${erase_line}${text_success}"+ Patched platform support check."${erase_style}
 }
 
 Input_Operation_APFS()
 {
 	if [[ "$(diskutil info "$volume_name"|grep "APFS")" == *"APFS"* ]]; then
 		if [[ $model_apfs == "1" ]]; then
-			echo ${text_warning}"! Your system doesn't support APFS."${erase_style}
-			echo ${text_message}"/ What operation would you like to run?"${erase_style}
-			echo ${text_message}"/ Input an operation number."${erase_style}
-			echo ${text_message}"/     1 - Install the APFS patch"${erase_style}
-			echo ${text_message}"/     2 - Continue without the APFS patch"${erase_style}
+			echo -e ${text_warning}"! Your system doesn't support APFS."${erase_style}
+			echo -e ${text_message}"/ What operation would you like to run?"${erase_style}
+			echo -e ${text_message}"/ Input an operation number."${erase_style}
+			echo -e ${text_message}"/     1 - Install the APFS patch"${erase_style}
+			echo -e ${text_message}"/     2 - Continue without the APFS patch"${erase_style}
 
 			Input_On
-			echo "/ 1"${erase_style}
+			echo -e "/ 1"${erase_style}
 			Input_Off
 
 			# if [[ $operation_apfs == "1" ]]; then
@@ -349,7 +361,7 @@ Input_Operation_APFS()
 
 Patch_APFS()
 {
-	echo ${text_progress}"> Installing APFS system patch."${erase_style}
+	echo -e ${text_progress}"> Installing APFS system patch."${erase_style}
 
 		volume_uuid="$(diskutil info "$volume_name"|grep "Volume UUID")"
 		volume_uuid="${volume_uuid:30:38}"
@@ -382,7 +394,7 @@ Patch_APFS()
 			Output_Off bless --mount /Volumes/EFI --setBoot --file /Volumes/EFI/EFI/BOOT/BOOTX64.efi --shortform
 		fi
 
-	echo ${move_up}${erase_line}${text_success}"+ Installed APFS system patch."${erase_style}
+	echo -e ${move_up}${erase_line}${text_success}"+ Installed APFS system patch."${erase_style}
 }
 
 Patch_Volume_Helpers()
@@ -394,7 +406,7 @@ Patch_Volume_Helpers()
 	disk_identifier_number="$((${disk_identifier: -1} + 1))"
 
 	if [[ "$(diskutil info "$volume_name"|grep "APFS")" == *"APFS"* ]]; then
-		echo ${text_progress}"> Patching Preboot partition."${erase_style}
+		echo -e ${text_progress}"> Patching Preboot partition."${erase_style}
 
 			if [[ "$(diskutil info "${disk_identifier_whole}s2"|grep "Volume Name")" == *"Preboot" ]]; then
 				preboot_identifier="${disk_identifier_whole}s2"
@@ -407,8 +419,8 @@ Patch_Volume_Helpers()
 			fi
 	
 			if [[ ! "$(diskutil info "${preboot_identifier}"|grep "Volume Name")" == *"Preboot" ]]; then
-				echo ${text_error}"- Error patching Preboot partition."${erase_style}
-				echo ${text_error}"- Preboot partition could not be found."${erase_style}
+				echo -e ${text_error}"- Error patching Preboot partition."${erase_style}
+				echo -e ${text_error}"- Preboot partition could not be found."${erase_style}
 			else
 	
 				Output_Off diskutil mount "$preboot_identifier"
@@ -427,14 +439,14 @@ Patch_Volume_Helpers()
 				done
 	
 				if [[ ! $preboot_folder == "/Volumes/Preboot/"* ]]; then
-					echo ${text_error}"- Error patching Preboot partition."${erase_style}
+					echo -e ${text_error}"- Error patching Preboot partition."${erase_style}
 				else
 					Output_Off rm "$preboot_folder"/System/Library/CoreServices/PlatformSupport.plist
 					Output_Off rm "$preboot_folder"/com.apple.installer/PlatformSupport.plist
 	
 					Output_Off diskutil unmount /Volumes/Preboot
 
-				echo ${move_up}${erase_line}${text_success}"+ Patched Preboot partition."${erase_style}
+				echo -e ${move_up}${erase_line}${text_success}"+ Patched Preboot partition."${erase_style}
 			fi
 		fi
 	fi
@@ -444,7 +456,7 @@ End()
 {
 	Output_Off diskutil unmount /Volumes/EFI
 
-	echo ${text_message}"/ Thank you for using macOS Patcher."${erase_style}
+	echo -e ${text_message}"/ Thank you for using macOS Patcher."${erase_style}
 
 	Input_On
 	Output_Off shutdown -r now
