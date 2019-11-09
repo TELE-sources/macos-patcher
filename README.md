@@ -1,4 +1,4 @@
-<img src="https://github.com/rmc-team/macos-patcher/raw/master-3.0/resources/MacBook.png" width="256">
+<img src="https://github.com/rmc-team/macos-patcher/raw/master-3.0/MacBook.png" width="256">
 
 # macOS Patcher
 macOS Patcher is a command line tool for running macOS on unsupported Macs
