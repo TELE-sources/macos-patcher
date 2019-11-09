@@ -1,4 +1,4 @@
-<img src="https://github.com/rmc-team/macos-patcher-resources/raw/master/resources/macbook_catalina_image.png" width="256">
+<img src="https://github.com/rmc-team/macos-patcher/raw/master/resources/MacBook.png" width="256">
 
 # macOS Patcher
 macOS Patcher is a command line tool for running macOS on unsupported Macs
@@ -13,6 +13,7 @@ I'd like to the thank the following people, and many others, for their research,
 - [jackluke](https://forums.macrumors.com/members/1133911/)
 - [Larsvonhier](https://forums.macrumors.com/members/1041077/)
 - [Czo](https://forums.macrumors.com/members/263182/)
+- [Syncretic](https://forums.macrumors.com/members/1173816/)
 
 # Links
 - [RMC GitHub](https://github.com/rmc-team)
