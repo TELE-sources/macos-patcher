@@ -17,7 +17,9 @@ I'd like to the thank the following people, and many others, for their research,
 
 # Links
 - [RMC GitHub](https://github.com/rmc-team)
-- [RMC Website](https://sites.google.com/view/rmc-team/home)
+- [RMC Website](https://www.rmc-team.ch/)
 - [RMC Twitter](https://twitter.com/_rmcteam)
-- [More Documentation](https://sites.google.com/view/rmc-team/patcher)
- 
+- [More Documentation](https://www.rmc-team.ch/patcher)
+
+# Information on the macOS 10.15 Catalina software update patch
+When installing software updates on macOS 10.15 Catalina, you'll have to hold the option key when your Mac first reboots and select your system drive. Once booted, don't try to login; your Mac should automatically patch the update and reboot after a few seconds. The update will then install normally. It's highly recommended to have a patched installer to patch your system after the update.

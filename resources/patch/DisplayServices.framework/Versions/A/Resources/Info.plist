@@ -31,16 +31,16 @@
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>8V109d</string>
+	<string>8R174l</string>
 	<key>DTPlatformVersion</key>
 	<string>GM</string>
 	<key>DTSDKBuild</key>
-	<string>16G11</string>
+	<string>16D29</string>
 	<key>DTSDKName</key>
 	<string>macosx10.12internal</string>
 	<key>DTXcode</key>
-	<string>0830</string>
+	<string>0800</string>
 	<key>DTXcodeBuild</key>
-	<string>8V109d</string>
+	<string>8R174l</string>
 </dict>
 </plist>

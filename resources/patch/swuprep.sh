@@ -42,6 +42,10 @@ Path_Variables()
 	if [[ -d "/patch" ]]; then
 		resources_path="/patch"
 	fi
+
+	if [[ -d "/usr/patch" ]]; then
+		resources_path="/usr/patch"
+	fi
 	
 	if [[ -d "/Volumes/Image Volume/patch" ]]; then
 		resources_path="/Volumes/Image Volume/patch"
@@ -266,12 +270,34 @@ Input_Volume()
 
 	done
 
+	volume_path=""
+	volume_name=""
+	
+	if [[ $(find /System/Volumes/* -name "macOS\ Install\ Data" -maxdepth 1 | wc -l | sed 's/\       //') == "1" ]]; then
+		volume_path="$(find /System/Volumes/* -name "macOS\ Install\ Data" -maxdepth 1 )"
+
+		update_volume_path="${volume_path%/macOS Install Data}"
+		volume_path="$(diskutil info /|grep "Mount Point"|sed 's/.*\ //')"
+		volume_name="$(diskutil info /|grep "Volume Name"|sed 's/.*\ //')"
+	fi
+	
 	if [[ $(find /Volumes/* -name "macOS\ Install\ Data" -maxdepth 1 | wc -l | sed 's/\       //') == "1" ]]; then
 		volume_path="$(find /Volumes/* -name "macOS\ Install\ Data" -maxdepth 1)"
 
+		update_volume_path="${volume_path%/macOS Install Data}"
 		volume_path="${volume_path%/macOS Install Data}"
 		volume_name="${volume_path#/Volumes/}"
-	else
+	fi
+
+	if [[ $(find /Volumes/*/usr/patch -name "SystemVersion.plist" -maxdepth 1 | wc -l | sed 's/\       //') == "1" ]]; then
+		volume_path="$(find /Volumes/*/usr/patch -name "SystemVersion.plist" -maxdepth 1)"
+
+		previous_volume_path="${volume_path%/usr/patch/SystemVersion.plist}"
+		volume_path="${volume_path%/usr/patch/SystemVersion.plist}"
+		volume_name="${volume_path#/Volumes/}"
+	fi
+	
+	if [[ "$volume_path" == "" || "$update_volume_path" == "" ]]; then
 		Input_On
 		exit
 	fi
@@ -302,10 +328,10 @@ Check_Volume_Version()
 {
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking system version."${erase_style}
 
-		volume_version="$(defaults read "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/SystemVersion.plist ProductVersion)"
-		volume_version_short="$(defaults read "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/SystemVersion.plist ProductVersion | cut -c-5)"
+		volume_version="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductVersion)"
+		volume_version_short="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductVersion | cut -c-5)"
 	
-		volume_build="$(defaults read "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/SystemVersion.plist ProductBuildVersion)"
+		volume_build="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductBuildVersion)"
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Checked system version."${erase_style}
 }
@@ -329,7 +355,7 @@ Patch_Volume()
 {
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching platform support check."${erase_style}
 
-		Output_Off rm "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/PlatformSupport.plist
+		Output_Off rm "$update_volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/PlatformSupport.plist
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched platform support check."${erase_style}
 }
@@ -365,7 +391,7 @@ Patch_APFS()
 			mkdir -p /Volumes/EFI/EFI/BOOT
 		fi
 	
-		cp "$resources_path"/startup.nsh /Volumes/EFI/EFI/BOOT
+		cp "$resources_path"/startup-update.nsh /Volumes/EFI/EFI/BOOT
 		cp "$resources_path"/BOOTX64.efi /Volumes/EFI/EFI/BOOT
 
 		Output_Off hdiutil attach "$volume_path"/macOS\ Install\ Data/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse
@@ -375,7 +401,9 @@ Patch_APFS()
 		Output_Off hdiutil detach /tmp/Base\ System
 	
 		sed -i '' "s/\"volume_uuid\"/\"$volume_uuid\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
-		sed -i '' "s/\"boot_file\"/\"macOS Install Data\\\Locked Files\\\Boot Files\\\boot.efi\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
+		sed -i '' "s/\"volume_uuid_update\"/\"$volume_uuid\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
+		sed -i '' "s/\"boot_file\"/\"System\\\Library\\\CoreServices\\\boot.efi\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
+		sed -i '' "s/\"boot_file_update\"/\"macOS Install Data\\\Locked Files\\\Boot Files\\\boot.efi\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
 	
 		if [[ $(diskutil info "$volume_name"|grep "Device Location") == *"Internal" ]]; then
 			Output_Off bless --mount /Volumes/EFI --setBoot --file /Volumes/EFI/EFI/BOOT/BOOTX64.efi --shortform
@@ -392,45 +420,79 @@ Patch_Volume_Helpers()
 	if [[ "$(diskutil info "$volume_name"|grep "File System Personality"|sed 's/.*\ //')" == "APFS" ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching Preboot partition."${erase_style}
 
-			preboot_identifier="$(diskutil info "$volume_name"|grep "Booter Disk"|sed 's/.*\ //')"
-	
+		if [[ ! -d "$volume_path - Data" && $volume_version_short == "10.15" ]]; then
+
+			preboot_identifier="$(diskutil info "$volume_name - Data"|grep "Booter Disk"|sed 's/.*\ //')"
+		
 			if [[ ! "$(diskutil info "${preboot_identifier}"|grep "Volume Name"|sed 's/.*\ //')" == "Preboot" ]]; then
 				echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- Fatal error patching Preboot partition."${erase_style}
-
+	
 				Input_On
 				exit
 			else
-	
+		
 				Output_Off diskutil mount "$preboot_identifier"
+		
+				preboot_folder="$(diskutil info "$volume_name - Data"|grep "Volume UUID"|sed 's/.*\ //')"
 	
-				preboot_folder="$(diskutil info "$volume_name"|grep "Volume UUID"|sed 's/.*\ //')"
-
 				preboot_version="$(defaults read /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/SystemVersion.plist ProductVersion)"
 				preboot_version_short="$(defaults read /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/SystemVersion.plist ProductVersion | cut -c-5)"
-	
+		
 				if [[ ! $volume_version == $preboot_version ]]; then
 					echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- Fatal error patching Preboot partition."${erase_style}
-	
+		
 					Input_On
 					exit
 				else
 					Output_Off rm /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/PlatformSupport.plist
 					Output_Off rm /Volumes/Preboot/"$preboot_folder"/com.apple.installer/PlatformSupport.plist
-		
+			
 					Output_Off diskutil unmount /Volumes/Preboot
-
-				echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched Preboot partition."${erase_style}
+				fi
 			fi
 		fi
+
+			preboot_identifier="$(diskutil info "$volume_name"|grep "Booter Disk"|sed 's/.*\ //')"
+		
+			if [[ ! "$(diskutil info "${preboot_identifier}"|grep "Volume Name"|sed 's/.*\ //')" == "Preboot" ]]; then
+				echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- Fatal error patching Preboot partition."${erase_style}
+	
+				Input_On
+				exit
+			else
+		
+				Output_Off diskutil mount "$preboot_identifier"
+		
+				preboot_folder="$(diskutil info "$volume_name"|grep "Volume UUID"|sed 's/.*\ //')"
+	
+				preboot_version="$(defaults read /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/SystemVersion.plist ProductVersion)"
+				preboot_version_short="$(defaults read /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/SystemVersion.plist ProductVersion | cut -c-5)"
+		
+				if [[ ! $volume_version == $preboot_version ]]; then
+					echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- Fatal error patching Preboot partition."${erase_style}
+		
+					Input_On
+					exit
+				else
+					Output_Off rm /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/PlatformSupport.plist
+					Output_Off rm /Volumes/Preboot/"$preboot_folder"/com.apple.installer/PlatformSupport.plist
+			
+					Output_Off diskutil unmount /Volumes/Preboot
+				fi
+			fi
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched Preboot partition."${erase_style}
 	fi
 }
 
 End()
 {
+	cp "$volume_path"/System/Library/CoreServices/SystemVersion.plist "$volume_path"/usr/patch/
+
 	Output_Off diskutil unmount /Volumes/EFI
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Thank you for using macOS Patcher."${erase_style}
-
+	
 	Input_On
 	Output_Off shutdown -r now
 }

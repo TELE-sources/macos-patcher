@@ -59,7 +59,7 @@ Output_Off()
 
 Check_Environment()
 {
-	echo -e ${text_progress}"> Checking system environment."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking system environment."${erase_style}
 
 	if [ -d /Install\ *.app ]; then
 		environment="installer"
@@ -69,27 +69,27 @@ Check_Environment()
 		environment="system"
 	fi
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Checked system environment."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Checked system environment."${erase_style}
 }
 
 Check_Root()
 {
-	echo -e ${text_progress}"> Checking for root permissions."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking for root permissions."${erase_style}
 
 	if [[ $environment == "installer" ]]; then
 		root_check="passed"
-		echo -e ${move_up}${erase_line}${text_success}"+ Root permissions check passed."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Root permissions check passed."${erase_style}
 	else
 
 		if [[ $(whoami) == "root" && $environment == "system" ]]; then
 			root_check="passed"
-			echo -e ${move_up}${erase_line}${text_success}"+ Root permissions check passed."${erase_style}
+			echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Root permissions check passed."${erase_style}
 		fi
 
 		if [[ ! $(whoami) == "root" && $environment == "system" ]]; then
 			root_check="failed"
-			echo -e ${text_error}"- Root permissions check failed."${erase_style}
-			echo -e ${text_message}"/ Run this tool with root permissions."${erase_style}
+			echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- Root permissions check failed."${erase_style}
+			echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Run this tool with root permissions."${erase_style}
 			Input_On
 			exit
 		fi
@@ -99,13 +99,15 @@ Check_Root()
 
 Check_SIP()
 {
-	echo -e ${text_progress}"> Checking System Integrity Protection status."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking System Integrity Protection status."${erase_style}
 
-	if [[ $(csrutil status | grep status) == *disabled* || $(csrutil status | grep status) == *unknown* ]]; then
-		echo -e ${move_up}${erase_line}${text_success}"+ System Integrity Protection status check passed."${erase_style}
-	else
-		echo -e ${text_error}"- System Integrity Protection status check failed."${erase_style}
-		echo -e ${text_message}"/ Run this tool with System Integrity Protection disabled."${erase_style}
+	if [[ $(csrutil status | grep status) == *disabled* ]] || [[ $(csrutil status | grep status) == *Custom\ Configuration* && $(csrutil status | grep "Kext Signing") == *disabled* ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ System Integrity Protection status check passed."${erase_style}
+	fi
+
+	if [[ $(csrutil status | grep status) == *enabled* && ! $(csrutil status | grep status) == *Custom\ Configuration* ]] || [[ $(csrutil status | grep status) == *Custom\ Configuration* && $(csrutil status | grep "Kext Signing") == *enabled* ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- System Integrity Protection status check failed."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Run this tool with System Integrity Protection disabled."${erase_style}
 
 		Input_On
 		exit
@@ -186,34 +188,34 @@ MacPro3,1"
 	
 	model_detected="$(sysctl -n hw.model)"
 
-	echo -e ${text_progress}"> Detecting model."${erase_style}
-	echo -e ${move_up}${erase_line}${text_success}"+ Detected model as $model_detected."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Detecting model."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Detected model as $model_detected."${erase_style}
 
-	echo -e ${text_message}"/ What model would you like to use?"${erase_style}
-	echo -e ${text_message}"/ Input an model option."${erase_style}
-	echo -e ${text_message}"/     1 - Use detected model"${erase_style}
-	echo -e ${text_message}"/     2 - Use manually selected model"${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ What model would you like to use?"${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Input an model option."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/     1 - Use detected model"${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/     2 - Use manually selected model"${erase_style}
 
 	Input_On
-	read -e -p "/ " model_option
+	read -e -p "$(date "+%b %m %H:%M:%S") / " model_option
 	Input_Off
 
 	if [[ $model_option == "1" ]]; then
 		model="$model_detected"
-		echo -e ${text_success}"+ Using $model_detected as model."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_success}"+ Using $model_detected as model."${erase_style}
 	fi
 
 	if [[ $model_option == "2" ]]; then
-		echo -e ${text_message}"/ What model would you like to use?"${erase_style}
-		echo -e ${text_message}"/ Input your model."${erase_style}
-		echo -e ${text_message}"$model_list"${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ What model would you like to use?"${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Input your model."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"$model_list"${erase_style}
 
 		Input_On
-		read -e -p "/ " model_selected
+		read -e -p "$(date "+%b %m %H:%M:%S") / " model_selected
 		Input_Off
 
 		model="$model_selected"
-		echo -e ${text_success}"+ Using $model_selected as model."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_success}"+ Using $model_selected as model."${erase_style}
 	fi
 
 	if [[ "$model_airport" == *"$model"* ]]; then
@@ -227,20 +229,20 @@ MacPro3,1"
 
 Input_Volume()
 {
-	echo -e ${text_message}"/ What volume would you like to use?"${erase_style}
-	echo -e ${text_message}"/ Input a volume name."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ What volume would you like to use?"${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Input a volume name."${erase_style}
 
 	for volume_path in /Volumes/*; do
 		volume_name="${volume_path#/Volumes/}"
 
 		if [[ ! "$volume_name" == com.apple* ]]; then
-			echo -e ${text_message}"/     ${volume_name}"${erase_style} | sort
+			echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/     ${volume_name}"${erase_style} | sort
 		fi
 
 	done
 
 	Input_On
-	read -e -p "/ " volume_name
+	read -e -p "$(date "+%b %m %H:%M:%S") / " volume_name
 	Input_Off
 
 	volume_path="/Volumes/$volume_name"
@@ -248,21 +250,16 @@ Input_Volume()
 
 Mount_EFI()
 {
-	disk_identifier="$(diskutil info "$volume_name"|grep "Device Identifier")"
-	disk_identifier="disk${disk_identifier#*disk}"
-	disk_identifier_whole="$(diskutil info "$volume_name"|grep "Part of Whole")"
-	disk_identifier_whole="disk${disk_identifier_whole#*disk}"
+	disk_identifier="$(diskutil info "$volume_name"|grep "Device Identifier"|sed 's/.*\ //')"
+	disk_identifier_whole="$(diskutil info "$volume_name"|grep "Part of Whole"|sed 's/.*\ //')"
 	
-	if [[ "$(diskutil info "$volume_name"|grep "APFS")" == *"APFS"* ]]; then
-		disk_identifier_whole="$(diskutil list|grep "\<$disk_identifier_whole\>")"
-		disk_identifier_whole="${disk_identifier_whole#*disk}"
-		disk_identifier_whole="${disk_identifier_whole#*disk}"
-		disk_identifier_whole="disk${disk_identifier_whole:0:1}"
-		disk_identifier_efi="${disk_identifier_whole}s1"
+	if [[ "$(diskutil info "$volume_name"|grep "File System Personality"|sed 's/.*\ //')" == "APFS" ]]; then
+		disk_identifier_whole="$(diskutil info "$volume_name"|grep "APFS Physical Store"|sed 's/.*\ //'|cut -c-6)"
+		disk_identifier_efi="${disk_identifier_whole}1"
 	fi
 	
-	if [[ "$(diskutil info "$volume_name"|grep "HFS")" == *"HFS"* ]]; then
-		disk_identifier_efi="${disk_identifier_whole}s1"
+	if [[ "$(diskutil info "$volume_name"|grep "File System Personality"|sed 's/.*\ //')" == "HFS" ]]; then
+		disk_identifier_efi="${disk_identifier_whole}1"
 	fi
 
 	Output_Off diskutil mount $disk_identifier_efi
@@ -270,25 +267,25 @@ Mount_EFI()
 
 Check_Volume_Version()
 {
-	echo -e ${text_progress}"> Checking system version."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking system version."${erase_style}
 
 		volume_version="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductVersion)"
 		volume_version_short="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductVersion | cut -c-5)"
 	
 		volume_build="$(defaults read "$volume_path"/System/Library/CoreServices/SystemVersion.plist ProductBuildVersion)"
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Checked system version."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Checked system version."${erase_style}
 }
 
 Check_Volume_Support()
 {
-	echo -e ${text_progress}"> Checking system support."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking system support."${erase_style}
 
 	if [[ $volume_version_short == "10.1"[2-5] ]]; then
-		echo -e ${move_up}${erase_line}${text_success}"+ System support check passed."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ System support check passed."${erase_style}
 	else
-		echo -e ${text_error}"- System support check failed."${erase_style}
-		echo -e ${text_message}"/ Run this tool on a supported system."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- System support check failed."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Run this tool on a supported system."${erase_style}
 
 		Input_On
 		exit
@@ -309,8 +306,8 @@ Volume_Variables()
 Check_Volume_dosdude()
 {
 	if [[ $volume_patch_variant_dosdude == "1" ]]; then
-		echo -e ${text_warning}"! Your system was patched by another patcher."${erase_style}
-		echo -e ${text_message}"/ Run this tool on a clean system."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_warning}"! Your system was patched by another patcher."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Run this tool on a clean system."${erase_style}
 
 		Input_On
 		exit
@@ -319,16 +316,16 @@ Check_Volume_dosdude()
 
 Input_Operation()
 {
-	echo -e ${text_message}"/ What operation would you like to run?"${erase_style}
-	echo -e ${text_message}"/ Input an operation number."${erase_style}
-	echo -e ${text_message}"/     1 - Remove all system patches"${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ What operation would you like to run?"${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Input an operation number."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/     1 - Remove all system patches"${erase_style}
 
 	if [[ $volume_patch_apfs == "1" ]]; then
-		echo -e ${text_message}"/     2 - Remove APFS system patch"${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/     2 - Remove APFS system patch"${erase_style}
 	fi
 
 	Input_On
-	read -e -p "/ " operation_system
+	read -e -p "$(date "+%b %m %H:%M:%S") / " operation_system
 	Input_Off
 
 	if [[ $operation_system == "1" ]]; then
@@ -363,13 +360,15 @@ Clean_Volume()
 
 Restore_Volume()
 {
-	echo -e ${text_progress}"> Removing input drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing input drivers patch."${erase_style}
 
 		rm -R "$volume_path"/System/Library/Extensions/LegacyUSBEthernet.kext
 		rm -R "$volume_path"/System/Library/Extensions/LegacyUSBInjector.kext
+		rm -R "$volume_path"/System/Library/Extensions/LegacyUSBVideoSupport.kext
 		
 		if [[ $volume_version_short == "10.1"[4-5] ]]; then
 			rm -R "$volume_path"/System/Library/Extensions/AppleUSBACM.kext
+			rm -R "$volume_path"/System/Library/Extensions/AppleUSBTopCase.kext
 		fi
 
 		if [[ $volume_version_short == "10.14" ]]; then
@@ -403,10 +402,10 @@ Restore_Volume()
 			rm -R "$volume_path"/System/Library/Extensions/AppleTopCase.kext
 		fi
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed input drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed input drivers patch."${erase_style}
 
 
-	echo -e ${text_progress}"> Removing graphics drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing graphics drivers patch."${erase_style}
 
 		if [[ $model == "MacPro3,1" ]]; then
 			rm -R "$volume_path"/System/Library/Extensions/AAAMouSSE.kext
@@ -500,34 +499,34 @@ Restore_Volume()
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/GPUWrangler.framework
 		fi
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed graphics drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed graphics drivers patch."${erase_style}
 
 
-	echo -e ${text_progress}"> Removing audio drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing audio drivers patch."${erase_style}
 
 		rm -R "$volume_path"/System/Library/Extensions/AppleHDA.kext
 		rm -R "$volume_path"/System/Library/Extensions/IOAudioFamily.kext
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed audio drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed audio drivers patch."${erase_style}
 
 
-	echo -e ${text_progress}"> Removing backlight drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing backlight drivers patch."${erase_style}
 
 		rm -R "$volume_path"/System/Library/Extensions/AppleBacklight.kext
 		rm -R "$volume_path"/System/Library/Extensions/AppleBacklightExpert.kext
 		rm -R "$volume_path"/System/Library/PrivateFrameworks/DisplayServices.framework
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed backlight drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed backlight drivers patch."${erase_style}
 
 
-	echo -e ${text_progress}"> Removing ambient light sensor drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing ambient light sensor drivers patch."${erase_style}
 
 		rm -R "$volume_path"/System/Library/Extensions/AppleSMCLMU.kext/Contents/PlugIns/AmbientLightSensorHID.plugin
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed ambient light sensor drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed ambient light sensor drivers patch."${erase_style}
 	
 
-	echo -e ${text_progress}"> Removing AirPort drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing AirPort drivers patch."${erase_style}
 
 		if [[ $volume_version_short == "10.15" ]]; then 
 			rm -R "$volume_path"/System/Library/Extensions/IO80211Family.kext
@@ -543,65 +542,91 @@ Restore_Volume()
 			rm -R "$volume_path"/System/Library/Extensions/CoreCaptureResponder.kext
 		fi
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed AirPort drivers patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed AirPort drivers patch."${erase_style}
 
 
 	if [[ $volume_version_short == "10.15" ]]; then
-		echo -e ${text_progress}"> Removing Ethernet drivers patch."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing Ethernet drivers patch."${erase_style}
 
 			rm -R "$volume_path"/System/Library/Extensions/IONetworkingFamily.kext/Contents/PlugIns/nvenet.kext
 			rm -R "$volume_path"/System/Library/Extensions/IONetworkingFamily.kext/Contents/PlugIns/AppleYukon2.kext
 
-		echo -e ${move_up}${erase_line}${text_success}"+ Removed Ethernet drivers patch."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed Ethernet drivers patch."${erase_style}
 	fi
 
 
 	if [[ $model == "MacBook4,1" ]]; then
-		echo -e ${text_progress}"> Removing Bluetooth drivers patch."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing Bluetooth drivers patch."${erase_style}
 
 			rm -R "$volume_path"/System/Library/Extensions/IOBluetoothFamily.kext
 			rm -R "$volume_path"/System/Library/Extensions/IOBluetoothHIDDriver.kext
 
-		echo -e ${move_up}${erase_line}${text_success}"+ Removed Bluetooth drivers patch."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed Bluetooth drivers patch."${erase_style}
 	fi
 
 
 	if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]]; then
-		echo -e ${text_progress}"> Removing Siri application patch."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing Siri application patch."${erase_style}
 
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SiriUI.framework
 
-		echo -e ${move_up}${erase_line}${text_success}"+ Removed Siri application patch."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed Siri application patch."${erase_style}
 	fi
 
 
 	if [[ $volume_version_short == "10.15" ]]; then
-		echo -e ${text_progress}"> Removing IDE drivers patch."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing IDE drivers patch."${erase_style}
 
 			rm -R "$volume_path"/System/Library/Extensions/IOATAFamily.kext/Contents/PlugIns/AppleIntelPIIXATA.kext
 
-		echo -e ${move_up}${erase_line}${text_success}"+ Removed IDE drivers patch."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed IDE drivers patch."${erase_style}
 	fi
 
 
-	echo -e ${text_progress}"> Removing software update check patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching News+."${erase_style}
+
+		if [[ $(grep "/System/Library/Frameworks/OpenCL.framework" "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt) == "/System/Library/Frameworks/OpenCL.framework" ]]; then
+    		sed -i '' 's|/System/Library/Frameworks/OpenCL.framework||' "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt
+		fi
+
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched News+."${erase_style}
+
+
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing software update check patch."${erase_style}
 
 		rm "$volume_path"/usr/lib/SUVMMFaker.dylib
 		rm "$volume_path"/System/Library/LaunchDaemons/com.apple.softwareupdated.plist
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed software update check patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed software update check patch."${erase_style}
 
 
-	echo -e ${text_progress}"> Removing System Integrity Protection patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing System Integrity Protection patch."${erase_style}
 
 		rm -R "$volume_path"/System/Library/Extensions/SIPManager.kext
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed System Integrity Protection patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed System Integrity Protection patch."${erase_style}
+
+
+	if [[ $volume_version_short == "10.15" ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing patcher utilities."${erase_style}
+	
+			if [[ -d "$volume_path"/usr/patch ]]; then
+				rm -R "$volume_path"/usr/patch
+			fi
+
+			rm "$volume_path"/System/Library/LaunchDaemons/com.rmc.swurun.plist
+	
+			rm "$volume_path"/usr/bin/swurun	
+			rm "$volume_path"/usr/bin/swuprep
+			rm "$volume_path"/usr/bin/swupost
+	
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed patcher utilities."${erase_style}
+	fi
 }
 
 Restore_APFS()
 {
-	echo -e ${text_progress}"> Removing APFS system patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing APFS system patch."${erase_style}
 
 		rm /Volumes/EFI/EFI/BOOT/startup.nsh
 		rm /Volumes/EFI/EFI/BOOT/BOOTX64.efi
@@ -611,7 +636,7 @@ Restore_APFS()
 			rm -R "$volume_path"/Library/PreferencePanes/APFS\ Boot\ Selector.prefPane
 		fi
 
-	echo -e ${move_up}${erase_line}${text_success}"+ Removed APFS system patch."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed APFS system patch."${erase_style}
 }
 
 Repair()
@@ -624,7 +649,7 @@ End()
 {
 	Output_Off diskutil unmount /Volumes/EFI
 
-	echo -e ${text_message}"/ Thank you for using macOS Patcher."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Thank you for using macOS Patcher."${erase_style}
 	
 	Input_On
 	exit

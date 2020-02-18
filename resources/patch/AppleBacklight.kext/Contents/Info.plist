@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>AppleBacklight</string>
 	<key>CFBundleGetInfoString</key>
-	<string>170.9.20, Copyright 2000-2017 Apple Inc. All rights reserved.</string>
+	<string>170.9.10, Copyright 2000-2015 Apple Inc. All rights reserved.</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.apple.driver.AppleBacklight</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -19,7 +19,7 @@
 	<key>CFBundlePackageType</key>
 	<string>KEXT</string>
 	<key>CFBundleShortVersionString</key>
-	<string>170.9.20</string>
+	<string>170.9.10</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleSupportedPlatforms</key>
@@ -27,21 +27,21 @@
 		<string>MacOSX</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>170.9.20</string>
+	<string>170.9.10</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>8V109d</string>
+	<string>8R174l</string>
 	<key>DTPlatformVersion</key>
 	<string>GM</string>
 	<key>DTSDKBuild</key>
-	<string>16G18</string>
+	<string>16D20</string>
 	<key>DTSDKName</key>
 	<string>macosx10.12internal</string>
 	<key>DTXcode</key>
-	<string>0830</string>
+	<string>0800</string>
 	<key>DTXcodeBuild</key>
-	<string>8V109d</string>
+	<string>8R174l</string>
 	<key>IOKitPersonalities</key>
 	<dict>
 		<key>AppleIntelPanelA</key>
@@ -627,6 +627,16 @@
 				ABEABgALABQAHAAnADMAPwBOAFwAZwBzAIEAkQClAL8A
 				2wD/
 				</data>
+				<key>F10Ta033</key>
+				<data>
+				ABEAAAANABIAFwAgACsAOQBOAGoAkADEAQ4BdQIEAsoD
+				3wVp
+				</data>
+				<key>F10Ta034</key>
+				<data>
+				ABEAAAANABIAFwAfACoAOABNAGkAjwDEAQ0BcgIAAscD
+				3wVp
+				</data>
 				<key>F11P9c58</key>
 				<data>
 				AEoASgDuASg=
@@ -876,6 +886,26 @@
 				ABEAAAA4AFgAggC5AP8BVwHDAkIC1QN9BD4FIQYyB4EJ
 				DArZ
 				</data>
+				<key>F15Ta030</key>
+				<data>
+				ABEAAAALAA4AEwAZACIALgA+AFQAcgCcANUBIwGPAiUC
+				8gQP
+				</data>
+				<key>F15Ta031</key>
+				<data>
+				ABEAAAAMABAAFQAcACYAMwBFAF4AgACvAPABSAHCAmoD
+				UgSS
+				</data>
+				<key>F15Ta033</key>
+				<data>
+				ABEAAAANABIAFwAgACsAOQBOAGoAkADEAQ4BdQIEAsoD
+				3wVp
+				</data>
+				<key>F15Ta034</key>
+				<data>
+				ABEAAAANABIAFwAfACoAOABNAGkAjwDEAQ0BcgIAAscD
+				3wVp
+				</data>
 				<key>F16Ta01a</key>
 				<data>
 				ABEAAAAYACcAOgBSAHEAlgDEAPwBQAGTAfYCbgL+A6oE
@@ -920,26 +950,6 @@
 				<data>
 				ABEAAAANABIAFwAfACoAOABNAGkAjwDEAQ0BcgIAAscD
 				3wVp
-				</data>
-				<key>F16Ta037</key>
-				<data>
-				ABEAAAANABIAFwAfACoAOABNAGkAjwDEAQ0BcgIAAscD
-				3wVp
-				</data>
-				<key>F17Ta033</key>
-				<data>
-				ABEAAAANABIAFgAeACgANgBJAGMAhwC4AP0BXQHjApwD
-				nwUP
-				</data>
-				<key>F17Ta034</key>
-				<data>
-				ABEAAAANABIAGAAfACoAOABNAGgAjgDCAQoBbwH7AsAD
-				1QVa
-				</data>
-				<key>F17Ta037</key>
-				<data>
-				ABEAAAANABIAGAAfACoAOABNAGgAjgDCAQoBbwH7AsAD
-				1QVa
 				</data>
 			</dict>
 			<key>CFBundleIdentifier</key>
