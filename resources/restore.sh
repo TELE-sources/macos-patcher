@@ -397,7 +397,11 @@ Restore_Volume()
 				rm -R  "$volume_path"/System/Library/Extensions/IOSerialFamily.kext
 			fi
 		fi
-	
+
+		if [[ $model == "MacBook4,1" || $model == "MacBook5,2" ]]; then
+			rm -R "$volume_path"/System/Library/PreferencePanes/Trackpad.prefPane
+		fi
+
 		if [[ $model == "MacBook5,2" ]]; then
 			rm -R "$volume_path"/System/Library/Extensions/AppleTopCase.kext
 		fi

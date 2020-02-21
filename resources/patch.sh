@@ -411,6 +411,10 @@ Patch_Volume()
 			fi
 		fi
 	
+		if [[ $model == "MacBook4,1" || $model == "MacBook5,2" ]]; then
+			cp -R "$resources_path"/Trackpad.prefPane "$volume_path"/System/Library/PreferencePanes
+		fi
+
 		if [[ $model == "MacBook5,2" ]]; then
 			cp -R "$resources_path"/AppleTopCase.kext "$volume_path"/System/Library/Extensions
 		fi
@@ -523,13 +527,13 @@ Patch_Volume()
 			cp -R "$resources_path"/MacBook4,1/AppleIntelGMAX3100VADriver.bundle "$volume_path"/System/Library/Extensions
 
 			if [[ -d "$volume_path - Data" ]]; then
+				cp -R "$resources_path"/Brightness\ Slider.app "$volume_path - Data"/Applications/Utilities
 				cp -R "$resources_path"/NoSleep.app "$volume_path - Data"/Applications/Utilities
 				cp -R "$resources_path"/NoSleep.kext "$volume_path - Data"/Library/Extensions
-				cp "$resources_path"/com.protech.NoSleep.plist "$volume_path - Data"/Library/LaunchAgents
 			else
+				cp -R "$resources_path"/Brightness\ Slider.app "$volume_path"/Applications/Utilities
 				cp -R "$resources_path"/NoSleep.app "$volume_path"/Applications/Utilities
 				cp -R "$resources_path"/NoSleep.kext "$volume_path"/Library/Extensions
-				cp "$resources_path"/com.protech.NoSleep.plist "$volume_path"/Library/LaunchAgents
 			fi
 		fi
 	
@@ -762,6 +766,10 @@ Repair_Permissions()
 			fi
 		fi
 	
+		if [[ $model == "MacBook4,1" || $model == "MacBook5,2" ]]; then
+			Repair "$volume_path"/System/Library/PreferencePanes/Trackpad.prefPane
+		fi
+		
 		Repair "$volume_path"/System/Library/Extensions/AppleTopCase.kext
 		
 		if [[ $model == "MacPro3,1" ]]; then

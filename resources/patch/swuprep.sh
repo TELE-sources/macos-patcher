@@ -375,8 +375,9 @@ Input_Operation_APFS()
 			Input_Off
 
 			# if [[ $operation_apfs == "1" ]]; then
+			if [[ -e /Volumes/EFI/EFI/BOOT/BOOTX64.efi && -e /Volumes/EFI/EFI/apfs.efi ]]; then
 				Patch_APFS
-			# fi
+			fi
 		fi
 	fi
 }

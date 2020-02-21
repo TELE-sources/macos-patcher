@@ -254,38 +254,38 @@ Create_Installer_Media()
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Creating installer files."${erase_style}
 
 		if [[ $installer_version_short == "10.9." || $installer_version_short == "10.10" ]]; then
-			echo -e $(date "+%b %m %H:%M:%S") "<?xml version="1.0" encoding="UTF-8"?>
+			echo -e "<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>Kernel Cache</key>
 	<string>/.IABootFiles/kernelcache</string>
 	<key>Kernel Flags</key>
-	<string>container-dmg=file:///"$(echo -e $(date "+%b %m %H:%M:%S") $installer_application_name | sed 's/\ /%20/g')"/Contents/SharedSupport/InstallESD.dmg root-dmg=file:///BaseSystem.dmg</string>
+	<string>container-dmg=file:///"$(echo -e $installer_application_name | sed 's/\ /%20/g')"/Contents/SharedSupport/InstallESD.dmg root-dmg=file:///BaseSystem.dmg</string>
 </dict>
 </plist>" > "$installer_volume_path"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
 		fi
 
 		if [[ $installer_version_short == "10.1"[1-2] ]]; then
-			echo -e $(date "+%b %m %H:%M:%S") "<?xml version="1.0" encoding="UTF-8"?>
+			echo -e "<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>Kernel Cache</key>
 	<string>/.IABootFiles/prelinkedkernel</string>
 	<key>Kernel Flags</key>
-	<string>container-dmg=file:///"$(echo -e $(date "+%b %m %H:%M:%S") $installer_application_name | sed 's/\ /%20/g')"/Contents/SharedSupport/InstallESD.dmg root-dmg=file:///BaseSystem.dmg</string>
+	<string>container-dmg=file:///"$(echo -e $installer_application_name | sed 's/\ /%20/g')"/Contents/SharedSupport/InstallESD.dmg root-dmg=file:///BaseSystem.dmg</string>
 </dict>
 </plist>" > "$installer_volume_path"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
 		fi
 
 		if [[ $installer_version_short == "10.1"[3-5] ]]; then
-			echo -e $(date "+%b %m %H:%M:%S") "<?xml version="1.0" encoding="UTF-8"?>
+			echo -e "<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>Kernel Flags</key>
-	<string>root-dmg=file:///"$(echo -e $(date "+%b %m %H:%M:%S") $installer_application_name | sed 's/\ /%20/g')"/Contents/SharedSupport/BaseSystem.dmg</string>
+	<string>root-dmg=file:///"$(echo -e $installer_application_name | sed 's/\ /%20/g')"/Contents/SharedSupport/BaseSystem.dmg</string>
 </dict>
 </plist>" > "$installer_volume_path"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
 		fi
@@ -294,7 +294,7 @@ Create_Installer_Media()
 			cp "$installer_volume_path"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist "$installer_volume_path"/.IABootFiles
 		fi
 	
-		echo -e $(date "+%b %m %H:%M:%S") "<?xml version="1.0" encoding="UTF-8"?>
+		echo -e "<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
