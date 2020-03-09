@@ -587,13 +587,15 @@ Restore_Volume()
 	fi
 
 
-	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching News+."${erase_style}
-
-		if [[ $(grep "/System/Library/Frameworks/OpenCL.framework" "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt) == "/System/Library/Frameworks/OpenCL.framework" ]]; then
-    		sed -i '' 's|/System/Library/Frameworks/OpenCL.framework||' "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt
-		fi
-
-	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched News+."${erase_style}
+	if [[ $volume_version_short == "10.1"[4-5] ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing News+ patch."${erase_style}
+	
+			if [[ $(grep "/System/Library/Frameworks/OpenCL.framework" "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt) == "/System/Library/Frameworks/OpenCL.framework" ]]; then
+   	 			sed -i '' 's|/System/Library/Frameworks/OpenCL.framework||' "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt
+			fi
+	
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed News+ patch."${erase_style}
+	fi
 
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing software update check patch."${erase_style}

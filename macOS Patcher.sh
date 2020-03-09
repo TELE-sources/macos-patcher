@@ -183,7 +183,7 @@ Input_Installer()
 
 Check_Installer_Stucture()
 {
-	Output_Off hdiutil attach "$installer_sharedsupport_path"/InstallESD.dmg -mountpoint /tmp/InstallESD -nobrowse
+	Output_Off hdiutil attach "$installer_sharedsupport_path"/InstallESD.dmg -mountpoint /tmp/InstallESD -nobrowse -noverify
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking installer structure."${erase_style}
 
@@ -199,7 +199,7 @@ Check_Installer_Stucture()
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Mounting installer disk images."${erase_style}
 
-		Output_Off hdiutil attach "$installer_images_path"/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse
+		Output_Off hdiutil attach "$installer_images_path"/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse -noverify
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Mounted installer disk images."${erase_style}
 }
@@ -483,7 +483,7 @@ Modern_Installer()
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Mounting BaseSystem disk image."${erase_style}
 	
-		Output_Off hdiutil attach -owners on "$installer_sharedsupport_path"/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse -shadow
+		Output_Off hdiutil attach -owners on "$installer_sharedsupport_path"/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse -noverify -shadow
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Mounting BaseSystem disk image."${erase_style}
 
@@ -580,7 +580,7 @@ Modern_Installer()
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Mounting InstallESD disk image."${erase_style}
 
-		Output_Off hdiutil attach -owners on "$installer_sharedsupport_path"/InstallESD.dmg -mountpoint /tmp/InstallESD -nobrowse -shadow
+		Output_Off hdiutil attach -owners on "$installer_sharedsupport_path"/InstallESD.dmg -mountpoint /tmp/InstallESD -nobrowse -noverify -shadow
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Mounted InstallESD disk image."${erase_style}
 

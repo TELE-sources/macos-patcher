@@ -394,6 +394,11 @@ Patch_Volume()
 		# fi
 	
 		if [[ $model == "MacBook4,1" ]]; then
+
+			if [[ $volume_version_short == "10.12" ]]; then
+				rm -R "$volume_path"/System/Library/Extensions/IOUSBHostFamily.kext
+			fi
+
 			cp -R "$resources_path"/MacBook4,1/AppleIRController.kext "$volume_path"/System/Library/Extensions
 			cp -R "$resources_path"/MacBook4,1/AppleMultitouchDriver.kext "$volume_path"/System/Library/Extensions
 			cp -R "$resources_path"/MacBook4,1/AppleUSBTopCase.kext "$volume_path"/System/Library/Extensions
@@ -636,23 +641,21 @@ Patch_Volume()
 	fi
 
 
-	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching News+."${erase_style}
-
-		if [[ ! $(grep -q "/System/Library/Frameworks/OpenCL.framework" "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt) == "/System/Library/Frameworks/OpenCL.framework" ]]; then
-    		echo "\n/System/Library/Frameworks/OpenCL.framework" >> "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt
-		fi
-
-	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched News+."${erase_style}
+	if [[ $volume_version_short == "10.1"[4-5] ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching News+."${erase_style}
+	
+			if [[ ! $(grep -q "/System/Library/Frameworks/OpenCL.framework" "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt) == "/System/Library/Frameworks/OpenCL.framework" ]]; then
+   	 			echo "\n/System/Library/Frameworks/OpenCL.framework" >> "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt
+			fi
+	
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched News+."${erase_style}
+	fi
 
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching software update check."${erase_style}
 
-		if [[ $volume_version_short == "10.12" ]]; then
+		if [[ $volume_version_short == "10.1"[2-4] ]]; then
 			cp "$resources_path"/10.12/SUVMMFaker.dylib "$volume_path"/usr/lib/SUVMMFaker.dylib
-		fi
-
-		if [[ $volume_version_short == "10.1"[3-4] ]]; then
-			cp "$resources_path"/10.13/SUVMMFaker.dylib "$volume_path"/usr/lib/SUVMMFaker.dylib
 		fi
 
 		if [[ $volume_version_short == "10.15" ]]; then
@@ -1046,12 +1049,12 @@ Patch_Volume_Helpers()
 		fi
 	fi
 
-	if [[ "$(diskutil info "$volume_name"|grep "File System Personality"|sed 's/.*\ //')" == "HFS" ]]; then
+	if [[ "$(diskutil info "$volume_name"|grep "File System Personality"|sed 's/.*\ //')" == "HFS+" ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching Recovery partition."${erase_style}
 
 			recovery_identifier="$(diskutil info "$volume_name"|grep "Recovery Disk"|sed 's/.*\ //')"
-	
-			if [[ ! "$(diskutil info "${recovery_identifier}"|grep "Volume Name"|sed 's/.*\ //')" == "Recovery HD" ]]; then
+
+			if [[ ! "$(diskutil info "${recovery_identifier}"|grep "Volume Name"|sed 's/.*\  //')" == "Recovery HD" ]]; then
 				echo -e $(date "+%b %m %H:%M:%S") ${text_warning}"! Error patching Recovery partition."${erase_style}
 			else
 
@@ -1061,10 +1064,10 @@ Patch_Volume_Helpers()
 				rm /Volumes/Recovery\ HD/com.apple.recovery.boot/prelinkedkernel
 				cp "$volume_path"/System/Library/PrelinkedKernels/prelinkedkernel /Volumes/Recovery\ HD/com.apple.recovery.boot
 				chflags uchg /Volumes/Recovery\ HD/com.apple.recovery.boot/prelinkedkernel
-	
+		
 				Output_Off rm /Volumes/Recovery\ HD/com.apple.recovery.boot/PlatformSupport.plist
-				Output_Off sed -i '' 's|dmg</string>|dmg -no_compat_check</string>|' /Volumes/Recovery/"$recovery_folder"/com.apple.boot.plist
-	
+				Output_Off sed -i '' 's|dmg</string>|dmg -no_compat_check</string>|' /Volumes/Recovery\ HD/com.apple.recovery.boot/com.apple.boot.plist
+		
 				Output_Off diskutil unmount /Volumes/Recovery\ HD
 
 			echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched Recovery partition."${erase_style}
