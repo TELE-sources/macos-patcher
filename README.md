@@ -24,5 +24,5 @@ I'd like to the thank the following people, and many others, for their research,
 # Brightness Slider and NoSleep
 If you have a MacBook4,1, you might notice two little applications have been installed along with macOS Patcher's other patches. They help solve specific issues on the MacBook4,1 and should be opened and configured after patching. NoSleep is open source and can be found [here](https://github.com/integralpro/nosleep). Brightness Slider is made by ACT Productions and can be found on the [Mac App Store](http://itunes.apple.com/us/app/brightness-control/id456624497?ls=1&mt=12).
 
-# Information on the macOS 10.15 Catalina software update patch
-When installing software updates on macOS 10.15 Catalina, you'll have to hold the option key when your Mac first reboots and select your system drive. Once booted, don't try to login; your Mac should automatically patch the update and reboot after a few seconds. The update will then install normally. It's highly recommended to have a patched installer to patch your system after the update.
+# Catalina software update patch
+When installing software updates on macOS 10.15 Catalina, you'll have to hold the option key when your Mac first reboots and select your system drive. Once booted, your Mac should automatically patch the update and reboot after a few seconds. The update will then install normally. It's highly recommended to have a patched installer to patch your system after the update.
