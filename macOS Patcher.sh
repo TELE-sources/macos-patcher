@@ -30,14 +30,6 @@ Parameter_Variables()
 		verbose="1"
 		set -x
 	fi
-	
-	if [[ $parameters == *"-modern-prelinkedkernel"* ]]; then
-		modern_prelinkedkernel="1"
-	fi
-
-	if [[ $parameters == *"-legacy-prelinkedkernel"* ]]; then
-		legacy_prelinkedkernel="1"
-	fi
 }
 
 Path_Variables()
@@ -124,10 +116,6 @@ Check_Resources()
 		Input_On
 		exit
 	fi
-
-	if [[ -d "$resources_path"/prelinkedkernel-modern ]]; then
-		modern_prelinkedkernel_check="1"
-	fi
 }
 
 Input_Operation()
@@ -152,7 +140,6 @@ Input_Operation()
 		if [[ $installer_version_short == "10.1"[2-4] ]]; then
 			Create_Installer
 			Patch_Installer
-			Repair_Permissions
 		fi
 
 		if [[ $installer_version_short == "10.15" ]]; then
@@ -244,14 +231,6 @@ Installer_Variables()
 	fi
 
 	installer_prelinkedkernel_path="$resources_path/prelinkedkernel/$installer_prelinkedkernel"
-
-	if [[ $modern_prelinkedkernel == "1" && $modern_prelinkedkernel_check == "1" ]]; then
-		installer_prelinkedkernel_path="$resources_path/prelinkedkernel-modern/$installer_prelinkedkernel"
-	fi
-	
-	if [[ $legacy_prelinkedkernel == "1" && $installer_version_short == "10.15" ]]; then
-		installer_prelinkedkernel_path="$resources_path/prelinkedkernel/$installer_prelinkedkernel-legacy"
-	fi
 }
 
 Input_Volume()
@@ -299,6 +278,7 @@ Create_Installer()
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Copied installer packages."${erase_style}
 
+
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Copying installer disk images."${erase_style}
 
 		cp "$installer_images_path"/BaseSystem.dmg "$installer_volume_path"/
@@ -318,13 +298,6 @@ Create_Installer()
 		Output_Off hdiutil detach /tmp/Base\ System
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Unmounted installer disk images."${erase_style}
-
-
-	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Replacing installer utilities menu."${erase_style}
-
-		cp "$resources_path"/InstallerMenuAdditions.plist "$installer_volume_path"/System/Installation/CDIS/*Installer.app/Contents/Resources
-
-	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Replacing installer utilities menu."${erase_style}
 }
 
 Patch_Installer()
@@ -338,6 +311,13 @@ Patch_Installer()
 
 Patch_Supported()
 {
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Replacing installer utilities menu."${erase_style}
+
+		cp "$resources_path"/InstallerMenuAdditions.plist "$installer_volume_path"/System/Installation/CDIS/*Installer.app/Contents/Resources
+
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Replacing installer utilities menu."${erase_style}
+
+
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching installer app."${erase_style}
 
 		cp -R "$installer_volume_path"/System/Installation/CDIS/macOS\ Installer.app "$installer_volume_path"/tmp/macOS\ Installer-original.app
@@ -501,21 +481,12 @@ Modern_Installer()
 		cp "$resources_path"/apfsprep.sh /tmp/Base\ System/sbin/apfsprep
 		chmod +x /tmp/Base\ System/sbin/apfsprep
 
-		Repair /tmp/Base\ System/usr/libexec/brtool
-		Repair /tmp/Base\ System/System/Library/PrivateFrameworks/OSInstaller.framework/Versions/A/OSInstaller
-		Repair /tmp/Base\ System/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Frameworks/OSInstallerSetupInternal.framework/Versions/A/OSInstallerSetupInternal
-		Repair "$installer_volume_path"/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Frameworks/OSInstallerSetupInternal.framework/Versions/A/OSInstallerSetupInternal
-		Repair /tmp/Base\ System/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources/osishelperd
-		Repair "$installer_volume_path"/"$installer_application_name"/Contents/Frameworks/OSInstallerSetup.framework/Versions/A/Resources/osishelperd
-		Repair /tmp/Base\ System/System/Library/Extensions/DisableLibraryValidation.kext
-
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched installer files."${erase_style}
 
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching input drivers."${erase_style}
 
 		cp -R "$resources_path"/patch/LegacyUSBInjector.kext /tmp/Base\ System/System/Library/Extensions
-		Repair /tmp/Base\ System/System/Library/Extensions/LegacyUSBInjector.kext
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched input drivers."${erase_style}
 
@@ -546,7 +517,6 @@ Modern_Installer()
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching System Integrity Protection."${erase_style}
 
 		cp -R "$resources_path"/patch/SIPManager.kext /tmp/Base\ System/System/Library/Extensions
-		Repair /tmp/Base\ System/System/Library/Extensions/SIPManager.kext
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched System Integrity Protection."${erase_style}
 
@@ -561,7 +531,7 @@ Modern_Installer()
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Copied patcher utilities."${erase_style}
 
-
+	
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Unmounting BaseSystem disk image."${erase_style}
 
 		Output_Off hdiutil detach /tmp/Base\ System
@@ -573,7 +543,6 @@ Modern_Installer()
 	
 		mv "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/BaseSystem.dmg "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/BaseSystem-stock.dmg
 		Output_Off hdiutil convert -format UDZO "$installer_sharedsupport_path"/BaseSystem.dmg -o "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/BaseSystem.dmg -shadow
-		Repair "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/BaseSystem.dmg
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Converted BaseSystem disk image."${erase_style}
 
@@ -595,8 +564,6 @@ Modern_Installer()
 		pkgutil --flatten /tmp/OSInstall /tmp/OSInstall.mpkg
 		cp /tmp/OSInstall.mpkg /tmp/InstallESD/Packages
 
-		Repair /tmp/InstallESD/Packages/OSInstall.mpkg
-
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched installer package."${erase_style}
 
 
@@ -611,45 +578,8 @@ Modern_Installer()
 	
 		rm "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/InstallESD.dmg
 		Output_Off hdiutil convert -format UDZO "$installer_sharedsupport_path"/InstallESD.dmg -o "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/InstallESD.dmg -shadow
-		Repair "$installer_volume_path"/"$installer_application_name"/Contents/SharedSupport/InstallESD.dmg
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Converting InstallESD disk image."${erase_style}
-}
-
-Repair()
-{
-	chown -R 0:0 "$@"
-	chmod -R 755 "$@"
-}
-
-Repair_Permissions()
-{
-	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Repairing permissions."${erase_style}
-
-		Repair "$installer_volume_path"/System/Installation/CDIS/*Installer.app
-	
-		if [[ $installer_patch_required == "1" ]]; then
-			Repair "$installer_volume_path"/System/Library/PrivateFrameworks/OSInstaller.framework
-	
-			if [[ $installer_version_short == "10.1"[4-5] ]]; then
-				Repair "$installer_volume_path"/System/Library/PrivateFrameworks/SystemMigration.framework
-				Repair "$installer_volume_path"/System/Library/PrivateFrameworks/SystemMigrationUtils.framework
-			fi
-	
-			Repair "$installer_volume_path"/System/Library/Frameworks/Quartz.framework
-		fi
-	
-		Repair "$installer_volume_path"/System/Installation/Packages/OSInstall.mpkg
-	
-		Repair "$installer_volume_path"/System/Library/Extensions/LegacyUSBInjector.kext
-		
-		Repair "$installer_volume_path"/System/Library/Extensions/SIPManager.kext
-	
-		Repair "$installer_volume_path"/patch
-		Repair "$installer_volume_path"/usr/bin/patch
-		Repair "$installer_volume_path"/usr/bin/restore
-
-	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Repaired permissions."${erase_style}
 }
 
 Input_Package()
@@ -705,7 +635,8 @@ End()
 		Output_Off rm -R "$installer_volume_path"/tmp/*
 
 		if [[ $installer_version_short == "10.15" ]]; then
-			Output_Off rm -R /tmp/*
+			Output_Off rm -R /tmp/OSInstall
+			Output_Off rm -R /tmp/OSInstall.mpkg
 
 			rm "$installer_sharedsupport_path"/BaseSystem.dmg.shadow
 			rm "$installer_sharedsupport_path"/InstallESD.dmg.shadow

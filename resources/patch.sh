@@ -352,22 +352,13 @@ Check_Volume_dosdude()
 
 Clean_Volume()
 {
-	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist
+	Output_Off rm -R "$volume_path"/usr/patch
 
-	Output_Off rm "$volume_path"/usr/bin/piputil
-	Output_Off rm "$volume_path"/usr/bin/transutil
+	Output_Off rm "$volume_path"/System/Library/LaunchDaemons/com.rmc.swurun.plist
 
-	if [[ $system_version_short	== "10.15" ]]; then
-		Output_Off rm "$volume_path - Data"/Library/LaunchAgents/com.rmc.pipagent.plist
-		Output_Off rm -R "$volume_path - Data"/Library/Application\ Support/com.rmc.pipagent
-	else
-		Output_Off rm "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
-		Output_Off rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent
-	fi
-
-	Output_Off rm "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak
-	Output_Off rm "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak
-	Output_Off rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak
+	Output_Off rm "$volume_path"/usr/bin/swurun
+	Output_Off rm "$volume_path"/usr/bin/swuprep
+	Output_Off rm "$volume_path"/usr/bin/swupost
 }
 
 Patch_Volume()
@@ -407,16 +398,15 @@ Patch_Volume()
 			cp -R "$resources_path"/MacBook4,1/IOUSBHostFamily.kext "$volume_path"/System/Library/Extensions
 			cp -R "$resources_path"/MacBook4,1/IOUSBMassStorageClass.kext "$volume_path"/System/Library/Extensions
 	
-			if [[ ! $volume_version_short == "10.15" ]]; then
-				cp -R "$resources_path"/MacBook4,1/AppleHIDMouse.kext "$volume_path"/System/Library/Extensions
-				cp -R "$resources_path"/MacBook4,1/AppleHSSPIHIDDriver.kext "$volume_path"/System/Library/Extensions
-				cp -R "$resources_path"/MacBook4,1/AppleTopCase.kext "$volume_path"/System/Library/Extensions
-				cp -R "$resources_path"/MacBook4,1/AppleUSBMultitouch.kext "$volume_path"/System/Library/Extensions
-				cp -R "$resources_path"/MacBook4,1/IOSerialFamily.kext "$volume_path"/System/Library/Extensions
-			fi
+			cp -R "$resources_path"/MacBook4,1/AppleHIDMouse.kext "$volume_path"/System/Library/Extensions
+			cp -R "$resources_path"/MacBook4,1/AppleHSSPIHIDDriver.kext "$volume_path"/System/Library/Extensions
+			cp -R "$resources_path"/MacBook4,1/AppleTopCase.kext "$volume_path"/System/Library/Extensions
+			cp -R "$resources_path"/MacBook4,1/AppleUSBMultitouch.kext "$volume_path"/System/Library/Extensions
+			cp -R "$resources_path"/MacBook4,1/IOSerialFamily.kext "$volume_path"/System/Library/Extensions
 		fi
 	
 		if [[ $model == "MacBook4,1" || $model == "MacBook5,2" ]]; then
+			rm -R "$volume_path"/System/Library/PreferencePanes/Trackpad.prefPane
 			cp -R "$resources_path"/Trackpad.prefPane "$volume_path"/System/Library/PreferencePanes
 		fi
 
@@ -644,8 +634,8 @@ Patch_Volume()
 	if [[ $volume_version_short == "10.1"[4-5] ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching News+."${erase_style}
 	
-			if [[ ! $(grep -q "/System/Library/Frameworks/OpenCL.framework" "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt) == "/System/Library/Frameworks/OpenCL.framework" ]]; then
-   	 			echo "\n/System/Library/Frameworks/OpenCL.framework" >> "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt
+			if [[ ! $(grep "/System/Library/Frameworks/OpenCL.framework" "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt) == "/System/Library/Frameworks/OpenCL.framework" ]]; then
+   	 			echo "/System/Library/Frameworks/OpenCL.framework" >> "$volume_path"/System/iOSSupport/dyld/macOS-whitelist.txt
 			fi
 	
 		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched News+."${erase_style}
@@ -696,30 +686,6 @@ Patch_Volume()
 		cp -R "$resources_path"/SIPManager.kext "$volume_path"/System/Library/Extensions
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched System Integrity Protection."${erase_style}
-
-
-	if [[ $volume_version_short == "10.15" ]]; then
-		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Copying patcher utilities."${erase_style}
-	
-			if [[ ! -d "$volume_path"/usr/patch ]]; then
-				mkdir -p "$volume_path"/usr/patch
-			fi
-			
-			cp "$resources_path"/startup.nsh "$volume_path"/usr/patch/
-			cp "$resources_path"/startup-update.nsh "$volume_path"/usr/patch/
-			cp "$resources_path"/BOOTX64.efi "$volume_path"/usr/patch/
-			cp "$resources_path"/com.rmc.swurun.plist "$volume_path"/System/Library/LaunchDaemons
-	
-			cp "$resources_path"/swurun.sh "$volume_path"/usr/bin/swurun
-			cp "$resources_path"/swuprep.sh "$volume_path"/usr/bin/swuprep
-			cp "$resources_path"/swupost.sh "$volume_path"/usr/bin/swupost
-	
-			chmod +x "$volume_path"/usr/bin/swurun
-			chmod +x "$volume_path"/usr/bin/swuprep
-			chmod +x "$volume_path"/usr/bin/swupost
-	
-		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Copied patcher utilities."${erase_style}
-	fi
 }
 
 Repair()
@@ -737,7 +703,6 @@ Repair_Permissions()
 		Repair "$volume_path"/System/Library/Extensions/LegacyUSBVideoSupport.kext
 		
 		if [[ $volume_version_short == "10.1"[4-5] ]]; then
-			Repair "$volume_path"/System/Library/Extensions/AppleUSBACM.kext
 			Repair "$volume_path"/System/Library/Extensions/AppleUSBTopCase.kext
 		fi
 
@@ -760,13 +725,11 @@ Repair_Permissions()
 			Repair "$volume_path"/System/Library/Extensions/IOUSBHostFamily.kext
 			Repair "$volume_path"/System/Library/Extensions/IOUSBMassStorageClass.kext
 	
-			if [[ ! $volume_version_short == "10.15" ]]; then
-				Repair "$volume_path"/System/Library/Extensions/AppleHIDMouse.kext
-				Repair "$volume_path"/System/Library/Extensions/AppleHSSPIHIDDriver.kext
-				Repair "$volume_path"/System/Library/Extensions/AppleTopCase.kext
-				Repair "$volume_path"/System/Library/Extensions/AppleUSBMultitouch.kext
-				Repair "$volume_path"/System/Library/Extensions/IOSerialFamily.kext
-			fi
+			Repair "$volume_path"/System/Library/Extensions/AppleHIDMouse.kext
+			Repair "$volume_path"/System/Library/Extensions/AppleHSSPIHIDDriver.kext
+			Repair "$volume_path"/System/Library/Extensions/AppleTopCase.kext
+			Repair "$volume_path"/System/Library/Extensions/AppleUSBMultitouch.kext
+			Repair "$volume_path"/System/Library/Extensions/IOSerialFamily.kext
 		fi
 	
 		if [[ $model == "MacBook4,1" || $model == "MacBook5,2" ]]; then
@@ -856,13 +819,13 @@ Repair_Permissions()
 			Repair "$volume_path"/System/Library/Extensions/AppleIntelGMAX3100VADriver.bundle
 
 			if [[ -d "$volume_path - Data" ]]; then
+				Repair "$volume_path - Data"/Applications/Utilities/Brightness\ Slider.app
 				Repair "$volume_path - Data"/Applications/Utilities/NoSleep.app
 				Repair "$volume_path - Data"/Library/Extensions/NoSleep.kext
-				Repair "$volume_path - Data"/Library/LaunchAgents/com.protech.NoSleep.plist
 			else
+				Repair "$volume_path"/Applications/Utilities/Brightness\ Slider.app
 				Repair "$volume_path"/Applications/Utilities/NoSleep.app
 				Repair "$volume_path"/Library/Extensions/NoSleep.kext
-				Repair "$volume_path"/Library/LaunchAgents/com.protech.NoSleep.plist
 			fi
 		fi
 	
@@ -951,10 +914,6 @@ Patch_APFS()
 		cp "$resources_path"/startup.nsh /Volumes/EFI/EFI/BOOT
 		cp "$resources_path"/BOOTX64.efi /Volumes/EFI/EFI/BOOT
 		cp "$volume_path"/usr/standalone/i386/apfs.efi /Volumes/EFI/EFI
-	
-		if [[ -d "$volume_path"/Library/PreferencePanes/APFS\ Boot\ Selector.prefPane ]]; then
-			rm -R "$volume_path"/Library/PreferencePanes/APFS\ Boot\ Selector.prefPane
-		fi
 	
 		sed -i '' "s/\"volume_uuid\"/\"$volume_uuid\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
 		sed -i '' "s/\"boot_file\"/\"System\\\Library\\\CoreServices\\\boot.efi\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh

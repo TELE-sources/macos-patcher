@@ -340,22 +340,13 @@ Input_Operation()
 
 Clean_Volume()
 {
-	Output_Off rm "$volume_path"/System/Library/CoreServices/SystemVersion-pip.plist
+	Output_Off rm -R "$volume_path"/usr/patch
 
-	Output_Off rm "$volume_path"/usr/bin/piputil
-	Output_Off rm "$volume_path"/usr/bin/transutil
+	Output_Off rm "$volume_path"/System/Library/LaunchDaemons/com.rmc.swurun.plist
 
-	if [[ $system_version_short	== "10.15" ]]; then
-		Output_Off rm "$volume_path - Data"/Library/LaunchAgents/com.rmc.pipagent.plist
-		Output_Off rm -R "$volume_path - Data"/Library/Application\ Support/com.rmc.pipagent
-	else
-		Output_Off rm "$volume_path"/Library/LaunchAgents/com.rmc.pipagent.plist
-		Output_Off rm -R "$volume_path"/Library/Application\ Support/com.rmc.pipagent
-	fi
-
-	Output_Off rm "$volume_path"/System/Library/PrivateFrameworks/CoreUI.framework/Versions/Current/CoreUI-bak
-	Output_Off rm "$volume_path"/System/Library/Frameworks/AppKit.framework/Versions/Current/AppKit-bak
-	Output_Off rm "$volume_path"/System/Library/Frameworks/Carbon.framework/Frameworks/HIToolbox.framework/Versions/Current/HIToolbox-bak
+	Output_Off rm "$volume_path"/usr/bin/swurun
+	Output_Off rm "$volume_path"/usr/bin/swuprep
+	Output_Off rm "$volume_path"/usr/bin/swupost
 }
 
 Restore_Volume()
@@ -389,13 +380,11 @@ Restore_Volume()
 			rm -R  "$volume_path"/System/Library/Extensions/IOUSBHostFamily.kext
 			rm -R  "$volume_path"/System/Library/Extensions/IOUSBMassStorageClass.kext
 	
-			if [[ ! $volume_version_short == "10.15" ]]; then
-				rm -R  "$volume_path"/System/Library/Extensions/AppleHIDMouse.kext
-				rm -R  "$volume_path"/System/Library/Extensions/AppleHSSPIHIDDriver.kext
-				rm -R  "$volume_path"/System/Library/Extensions/AppleTopCase.kext
-				rm -R  "$volume_path"/System/Library/Extensions/AppleUSBMultitouch.kext
-				rm -R  "$volume_path"/System/Library/Extensions/IOSerialFamily.kext
-			fi
+			rm -R  "$volume_path"/System/Library/Extensions/AppleHIDMouse.kext
+			rm -R  "$volume_path"/System/Library/Extensions/AppleHSSPIHIDDriver.kext
+			rm -R  "$volume_path"/System/Library/Extensions/AppleTopCase.kext
+			rm -R  "$volume_path"/System/Library/Extensions/AppleUSBMultitouch.kext
+			rm -R  "$volume_path"/System/Library/Extensions/IOSerialFamily.kext
 		fi
 
 		if [[ $model == "MacBook4,1" || $model == "MacBook5,2" ]]; then
@@ -611,23 +600,6 @@ Restore_Volume()
 		rm -R "$volume_path"/System/Library/Extensions/SIPManager.kext
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed System Integrity Protection patch."${erase_style}
-
-
-	if [[ $volume_version_short == "10.15" ]]; then
-		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing patcher utilities."${erase_style}
-	
-			if [[ -d "$volume_path"/usr/patch ]]; then
-				rm -R "$volume_path"/usr/patch
-			fi
-
-			rm "$volume_path"/System/Library/LaunchDaemons/com.rmc.swurun.plist
-	
-			rm "$volume_path"/usr/bin/swurun	
-			rm "$volume_path"/usr/bin/swuprep
-			rm "$volume_path"/usr/bin/swupost
-	
-		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed patcher utilities."${erase_style}
-	fi
 }
 
 Restore_APFS()
@@ -637,18 +609,8 @@ Restore_APFS()
 		rm /Volumes/EFI/EFI/BOOT/startup.nsh
 		rm /Volumes/EFI/EFI/BOOT/BOOTX64.efi
 		rm /Volumes/EFI/EFI/apfs.efi
-	
-		if [[ -d "$volume_path"/Library/PreferencePanes/APFS\ Boot\ Selector.prefPane ]]; then
-			rm -R "$volume_path"/Library/PreferencePanes/APFS\ Boot\ Selector.prefPane
-		fi
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed APFS system patch."${erase_style}
-}
-
-Repair()
-{
-	chown -R 0:0 "$@"
-	chmod -R 755 "$@"
 }
 
 End()

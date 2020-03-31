@@ -271,7 +271,9 @@ Input_Volume()
 
 		volume_path="${volume_path%/macOS Install Data}"
 		volume_name="${volume_path#/Volumes/}"
-	else
+	fi
+
+	if [[ "$volume_path" == "" ]]; then
 		Input_On
 		exit
 	fi
@@ -307,6 +309,13 @@ Check_Volume_Version()
 	
 		volume_build="$(defaults read "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/SystemVersion.plist ProductBuildVersion)"
 
+		if [[ -d "/Volumes/Image Volume" ]]; then
+			image_volume_version="$(defaults read /Volumes/Image\ Volume/System/Library/CoreServices/SystemVersion.plist ProductVersion)"
+			image_volume_version_short="$(defaults read /Volumes/Image\ Volume/System/Library/CoreServices/SystemVersion.plist ProductVersion | cut -c-5)"
+	
+			image_volume_build="$(defaults read /Volumes/Image\ Volume/System/Library/CoreServices/SystemVersion.plist ProductBuildVersion)"
+		fi
+
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Checked system version."${erase_style}
 }
 
@@ -329,7 +338,7 @@ Patch_Volume()
 {
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching platform support check."${erase_style}
 
-		Output_Off rm "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/PlatformSupport.plist
+		Output_Off sed -i '' 's|BaseSystem.dmg</string>|BaseSystem.dmg -no_compat_check</string>|' "$volume_path"/macOS\ Install\ Data/Locked\ Files/Boot\ Files/com.apple.Boot.plist
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched platform support check."${erase_style}
 }
@@ -368,11 +377,9 @@ Patch_APFS()
 		cp "$resources_path"/startup.nsh /Volumes/EFI/EFI/BOOT
 		cp "$resources_path"/BOOTX64.efi /Volumes/EFI/EFI/BOOT
 
-		Output_Off hdiutil attach "$volume_path"/macOS\ Install\ Data/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse
-
-		cp /tmp/Base\ System/usr/standalone/i386/apfs.efi /Volumes/EFI/EFI
-
-		Output_Off hdiutil detach /tmp/Base\ System
+		if [[ $image_volume_version == $volume_version ]]; then
+			cp /usr/standalone/i386/apfs.efi /Volumes/EFI/EFI
+		fi
 	
 		sed -i '' "s/\"volume_uuid\"/\"$volume_uuid\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
 		sed -i '' "s/\"boot_file\"/\"macOS Install Data\\\Locked Files\\\Boot Files\\\boot.efi\"/g" /Volumes/EFI/EFI/BOOT/startup.nsh
