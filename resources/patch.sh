@@ -363,6 +363,17 @@ Clean_Volume()
 
 Patch_Volume()
 {
+	if [[ $volume_version == "10.15."[4-6] ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching boot.efi."${erase_style}
+
+			chflags nouchg "$volume_path"/System/Library/CoreServices/boot.efi
+			cp "$resources_path"/boot.efi "$volume_path"/System/Library/CoreServices
+			chflags uchg "$volume_path"/System/Library/CoreServices/boot.efi
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched boot.efi."${erase_style}
+	fi
+
+
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching input drivers."${erase_style}
 
 		cp -R "$resources_path"/LegacyUSBEthernet.kext "$volume_path"/System/Library/Extensions
@@ -542,6 +553,18 @@ Patch_Volume()
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched graphics drivers."${erase_style}
 
 
+	if [[ $volume_version == "10.15."[4-6] ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching monitor preferences."${erase_style}
+
+			rm -R "$volume_path"/System/Library/PrivateFrameworks/MonitorPanel.framework
+			cp -R "$resources_path"/MonitorPanel.framework "$volume_path"/System/Library/PrivateFrameworks
+			rm -R "$volume_path"/System/Library/MonitorPanels
+			cp -R "$resources_path"/MonitorPanels "$volume_path"/System/Library/
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched monitor preferences."${erase_style}
+	fi
+
+
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching audio drivers."${erase_style}
 
 		if [[ $model == "MacBook4,1" ]]; then
@@ -679,6 +702,15 @@ Patch_Volume()
 		Output_Off kextcache -i "$volume_path" -kernel "$volume_path"/System/Library/Kernels/kernel
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched kernel cache."${erase_style}
+
+
+	if [[ $volume_version == "10.15."[4-6] ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching dyld shared cache."${erase_style}
+	
+			Output_Off "$volume_path"/usr/bin/update_dyld_shared_cache -root "$volume_path"
+	
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched dyld shared cache."${erase_style}
+	fi
 
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching System Integrity Protection."${erase_style}
@@ -835,6 +867,11 @@ Repair_Permissions()
 			Repair "$volume_path"/System/Library/Extensions/AppleMCCSControl.kext
 			Repair "$volume_path"/System/Library/PrivateFrameworks/GPUWrangler.framework
 		fi
+
+		if [[ $volume_version == "10.15."[4-6] ]]; then
+			Repair "$volume_path"/System/Library/PrivateFrameworks/MonitorPanel.framework
+			Repair "$volume_path"/System/Library/MonitorPanels
+		fi
 	
 		Repair "$volume_path"/System/Library/Extensions/AppleHDA.kext
 		Repair "$volume_path"/System/Library/Extensions/IOAudioFamily.kext
@@ -953,6 +990,12 @@ Patch_Volume_Helpers()
 
 					exit
 				else
+					if [[ $volume_version == "10.15."[4-6] ]]; then
+						chflags nouchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
+						cp "$resources_path"/boot.efi /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices
+						chflags uchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
+					fi
+
 					Output_Off rm /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/PlatformSupport.plist
 					Output_Off sed -i '' 's|<string></string>|<string>amfi_get_out_of_my_way=1</string>|' /Volumes/Preboot/"$preboot_folder"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
 	

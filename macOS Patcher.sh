@@ -205,7 +205,7 @@ Check_Installer_Support()
 {
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking installer support."${erase_style}
 
-	if [[ $installer_version_short == "10.1"[2-4] || $installer_version == "10.15" || $installer_version == "10.15."[1-3] ]]; then
+	if [[ $installer_version_short == "10.1"[2-4] || $installer_version == "10.15" || $installer_version == "10.15."[1-4] ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Installer support check passed."${erase_style}
 	else
 		echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- Installer support check failed."${erase_style}

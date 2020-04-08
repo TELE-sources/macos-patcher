@@ -351,6 +351,15 @@ Clean_Volume()
 
 Restore_Volume()
 {
+	if [[ $volume_version == "10.15."[4-6] ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing boot.efi patch."${erase_style}
+
+			chflags nouchg "$volume_path"/System/Library/CoreServices/boot.efi
+			rm "$volume_path"/System/Library/CoreServices/boot.efi
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed boot.efi patch."${erase_style}
+	fi
+
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing input drivers patch."${erase_style}
 
 		rm -R "$volume_path"/System/Library/Extensions/LegacyUSBEthernet.kext
@@ -493,6 +502,16 @@ Restore_Volume()
 		fi
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed graphics drivers patch."${erase_style}
+
+
+	if [[ $volume_version == "10.15."[4-6] ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing monitor preferences patch."${erase_style}
+
+			rm -R "$volume_path"/System/Library/PrivateFrameworks/MonitorPanel.framework
+			rm -R "$volume_path"/System/Library/MonitorPanels
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed monitor preferences patch."${erase_style}
+	fi
 
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing audio drivers patch."${erase_style}
