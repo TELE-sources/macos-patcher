@@ -254,12 +254,12 @@ Mount_EFI()
 	disk_identifier_whole="$(diskutil info "$volume_name"|grep "Part of Whole"|sed 's/.*\ //')"
 	
 	if [[ "$(diskutil info "$volume_name"|grep "File System Personality"|sed 's/.*\ //')" == "APFS" ]]; then
-		disk_identifier_whole="$(diskutil info "$volume_name"|grep "APFS Physical Store"|sed 's/.*\ //'|cut -c-6)"
+		disk_identifier_whole="$(diskutil list|grep "\<Container $disk_identifier_whole\>"|sed 's/.*\ //'|sed 's/s[0-9]*$/s/')"
 		disk_identifier_efi="${disk_identifier_whole}1"
 	fi
 	
-	if [[ "$(diskutil info "$volume_name"|grep "File System Personality"|sed 's/.*\ //')" == "HFS" ]]; then
-		disk_identifier_efi="${disk_identifier_whole}1"
+	if [[ "$(diskutil info "$volume_name"|grep "File System Personality"|sed 's/.*\ //')" == "HFS+" ]]; then
+		disk_identifier_efi="${disk_identifier_whole}s1"
 	fi
 
 	Output_Off diskutil mount $disk_identifier_efi
