@@ -71,6 +71,10 @@ I'd like to the thank the following people, and many others, for their research,
 -   Xserve2,1
 -   Xserve3,1
 
+# Usage
+chmod +x ./macOS\ Patcher.sh —> makes the script runnable  
+sudo ./macOS\ Patcher.sh —> runs the script with root permissions  
+
 # Brightness Slider and NoSleep
 If you have a MacBook4,1, you might notice two little applications have been installed along with macOS Patcher's other patches. They help solve specific issues on the MacBook4,1 and should be opened and configured after patching. NoSleep is open source and can be found [here](https://github.com/integralpro/nosleep). Brightness Slider is made by ACT Productions and can be found on the [Mac App Store](http://itunes.apple.com/us/app/brightness-control/id456624497?ls=1&mt=12).
 
