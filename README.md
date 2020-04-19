@@ -23,7 +23,7 @@ I'd like to the thank the following people, and many others, for their research,
 
 # Supported Macs
 ## iMacs
--   iMac7,1
+-   iMac7,1 (with Penryn CPU)
 -   iMac8,1
 -   iMac9,1
 -   iMac10,1
