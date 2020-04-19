@@ -30,6 +30,10 @@ Parameter_Variables()
 		verbose="1"
 		set -x
 	fi
+
+	if [[ $parameters == *"-unus"* ]]; then
+		catalina_unus="1"
+	fi
 }
 
 Path_Variables()
@@ -142,8 +146,14 @@ Input_Operation()
 			Patch_Installer
 		fi
 
-		if [[ $installer_version_short == "10.15" ]]; then
+		if [[ $installer_version_short == "10.15" && ! $catalina_unus == "1" ]]; then
 			Modern_Installer
+		fi
+
+		if [[ $installer_version_short == "10.15" && $catalina_unus == "1" ]]; then
+			Download_Unus
+			Create_Installer
+			Patch_Installer
 		fi
 	fi
 
@@ -230,6 +240,10 @@ Installer_Variables()
 		installer_prelinkedkernel="$installer_version_short.4"
 	fi
 
+	if [[ $installer_version_short == "10.15" && $catalina_unus == "1" ]]; then
+		installer_prelinkedkernel="10.14.4"
+	fi
+
 	installer_prelinkedkernel_path="$resources_path/prelinkedkernel/$installer_prelinkedkernel"
 }
 
@@ -254,11 +268,27 @@ Input_Volume()
 	installer_volume_path="/Volumes/$installer_volume_name"
 }
 
+Download_Unus()
+{
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Downloading Catalina Unus."${erase_style}
+
+		curl -L -s -o /tmp/catalina-unus.zip https://github.com/rmc-team/catalina-unus/archive/master.zip
+		unzip -q /tmp/catalina-unus.zip -d /tmp
+	
+		unus_resources_path="/tmp/catalina-unus-master/resources"
+
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Downloaded Catalina Unus."${erase_style}
+}
+
 Create_Installer()
 {
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Restoring installer disk image."${erase_style}
 
-		Output_Off asr restore -source "$installer_images_path"/BaseSystem.dmg -target "$installer_volume_path" -noprompt -noverify -erase
+		if [[ $installer_version_short == "10.15" && $catalina_unus == "1" ]]; then
+			Output_Off asr restore -source "$unus_resources_path"/UnusSystem.dmg -target "$installer_volume_path" -noprompt -noverify -erase
+		else
+			Output_Off asr restore -source "$installer_images_path"/BaseSystem.dmg -target "$installer_volume_path" -noprompt -noverify -erase
+		fi
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Restored installer disk image."${erase_style}
 
@@ -302,7 +332,7 @@ Create_Installer()
 
 Patch_Installer()
 {
-	if [[ $installer_version_short == "10.1"[3-5] ]]; then
+	if [[ $installer_version_short == "10.1"[3-4] ]]; then
 		Patch_Supported
 	fi
 
@@ -632,14 +662,27 @@ End()
 {
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing temporary files."${erase_style}
 
-		Output_Off rm -R "$installer_volume_path"/tmp/*
+		Output_Off rm -R "$installer_volume_path"/tmp/macOS\ Installer-original.app
+		Output_Off rm -R "$installer_volume_path"/tmp/macOS\ Installer-patched.app
 
-		if [[ $installer_version_short == "10.15" ]]; then
+		Output_Off rm -R "$installer_volume_path"/tmp/Quartz-original.framework
+		Output_Off rm -R "$installer_volume_path"/tmp/Quartz-patched.framework
+
+		Output_Off rm -R "$installer_volume_path"/tmp/OSInstall
+		Output_Off rm -R "$installer_volume_path"/tmp/OSInstall.mpkg
+
+
+		if [[ $installer_version_short == "10.15" && ! $catalina_unus == "1" ]]; then
 			Output_Off rm -R /tmp/OSInstall
 			Output_Off rm -R /tmp/OSInstall.mpkg
 
 			rm "$installer_sharedsupport_path"/BaseSystem.dmg.shadow
 			rm "$installer_sharedsupport_path"/InstallESD.dmg.shadow
+		fi
+
+		if [[ $installer_version_short == "10.15" && $catalina_unus == "1" ]]; then
+			Output_Off rm -R "$installer_volume_path"/tmp/OSInstall
+			Output_Off rm -R "$installer_volume_path"/tmp/OSInstall.mpkg
 		fi
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed temporary files."${erase_style}

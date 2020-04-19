@@ -337,6 +337,10 @@ Volume_Variables()
 	if [[ -e /Volumes/EFI/EFI/BOOT/BOOTX64.efi && -e /Volumes/EFI/EFI/apfs.efi ]]; then
 		volume_patch_apfs="1"
 	fi
+
+	if [[ $volume_version_short == "10.15" && ! -d "$volume_path - Data" ]]; then
+		catalina_unus="1"
+	fi
 }
 
 Check_Volume_dosdude()
@@ -361,17 +365,26 @@ Clean_Volume()
 	Output_Off rm "$volume_path"/usr/bin/swupost
 }
 
+Patch_Unus()
+{
+	if [[ $catalina_unus == "1" ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching Catalina Unus."${erase_style}
+
+			ditto "$volume_path"/System/Library/Templates/Data "$volume_path"/
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched Catalina Unus."${erase_style}
+	fi
+}
+
 Patch_Volume()
 {
-	if [[ $volume_version == "10.15."[4-6] ]]; then
-		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching boot.efi."${erase_style}
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching boot.efi."${erase_style}
 
-			chflags nouchg "$volume_path"/System/Library/CoreServices/boot.efi
-			cp "$resources_path"/boot.efi "$volume_path"/System/Library/CoreServices
-			chflags uchg "$volume_path"/System/Library/CoreServices/boot.efi
+		chflags nouchg "$volume_path"/System/Library/CoreServices/boot.efi
+		cp "$resources_path"/boot.efi "$volume_path"/System/Library/CoreServices
+		chflags uchg "$volume_path"/System/Library/CoreServices/boot.efi
 
-		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched boot.efi."${erase_style}
-	fi
+	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched boot.efi."${erase_style}
 
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching input drivers."${erase_style}
@@ -430,12 +443,12 @@ Patch_Volume()
 
 	if [[ $model_metal == *$model* ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_warning}"! Metal graphics card compatible model detected."${erase_style}
-		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ These graphics patches are not for Metal cards."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ These patches are not for Metal graphics cards."${erase_style}
 		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Input an operation number."${erase_style}
 		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/     1 - Install the graphics patches"${erase_style}
-		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/     2 - Continue without the graphics patch"${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/     2 - Continue without the graphics patches"${erase_style}
 		Input_On
-		read -e -p "$(date "+%b %m %H:%M:%S") / " operation_graphis_card
+		read -e -p "$(date "+%b %m %H:%M:%S") / " operation_graphics_card
 		Input_Off
 	fi
 
@@ -497,18 +510,18 @@ Patch_Volume()
 			cp -R "$resources_path"/NVDAResmanTesla.kext "$volume_path"/System/Library/Extensions
 		fi
 		
-		if [[ $volume_version_short == "10.14" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version_short == "10.14" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 			cp -R "$resources_path"/10.14/SkyLight.framework "$volume_path"/System/Library/PrivateFrameworks
 		fi
 
-		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 			cp "$resources_path"/libGPUSupport.dylib "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries
 			rm -R "$volume_path"/System/Library/Frameworks/OpenGL.framework
 			cp -R "$resources_path"/OpenGL.framework "$volume_path"/System/Library/Frameworks
 		fi
 	
-		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			cp -R "$resources_path"/10.14/CoreDisplay.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 		fi
@@ -517,7 +530,7 @@ Patch_Volume()
 			cp -R "$resources_path"/IOSurface.kext "$volume_path"/System/Library/Extensions
 		fi
 	
-		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			cp -R "$resources_path"/CoreDisplay.framework "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
@@ -667,11 +680,11 @@ Patch_Volume()
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching software update check."${erase_style}
 
-		if [[ $volume_version_short == "10.1"[2-4] ]]; then
+		if [[ $volume_version_short == "10.1"[2-4] || $catalina_unus == "1" ]]; then
 			cp "$resources_path"/10.12/SUVMMFaker.dylib "$volume_path"/usr/lib/SUVMMFaker.dylib
 		fi
 
-		if [[ $volume_version_short == "10.15" ]]; then
+		if [[ $volume_version_short == "10.15" && ! $catalina_unus == "1" ]]; then
 			cp "$resources_path"/SUVMMFaker.dylib "$volume_path"/usr/lib/SUVMMFaker.dylib
 		fi
 
@@ -704,7 +717,7 @@ Patch_Volume()
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched kernel cache."${erase_style}
 
 
-	if [[ $volume_version == "10.15."[4-6] ]]; then
+	if [[ $volume_version == "10.15."[4-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching dyld shared cache."${erase_style}
 	
 			Output_Off "$volume_path"/usr/bin/update_dyld_shared_cache -root "$volume_path"
@@ -821,16 +834,16 @@ Repair_Permissions()
 		Repair "$volume_path"/System/Library/Extensions/NVDANV50HalTesla.kext
 		Repair "$volume_path"/System/Library/Extensions/NVDAResmanTesla.kext
 
-		if [[ $volume_version_short == "10.14" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version_short == "10.14" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 			Repair "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 		fi
 	
-		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 			Repair "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries/libGPUSupport.dylib
 			Repair "$volume_path"/System/Library/Frameworks/OpenGL.framework
 		fi
 	
-		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 			Repair "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 		fi
 	
@@ -838,7 +851,7 @@ Repair_Permissions()
 			Repair "$volume_path"/System/Library/Extensions/IOSurface.kext
 		fi
 
-		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphics_card == "2" ]]; then
 			Repair "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			Repair "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 		fi
@@ -990,11 +1003,9 @@ Patch_Volume_Helpers()
 
 					exit
 				else
-					if [[ $volume_version == "10.15."[4-6] ]]; then
-						chflags nouchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
-						cp "$resources_path"/boot.efi /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices
-						chflags uchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
-					fi
+					chflags nouchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
+					cp "$resources_path"/boot.efi /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices
+					chflags uchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
 
 					Output_Off rm /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/PlatformSupport.plist
 					Output_Off sed -i '' 's|<string></string>|<string>amfi_get_out_of_my_way=1</string>|' /Volumes/Preboot/"$preboot_folder"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
@@ -1030,6 +1041,10 @@ Patch_Volume_Helpers()
 					if [[ -f /Volumes/Image\ Volume/Install\ macOS\ Catalina.app/Contents/SharedSupport/BaseSystem-stock.dmg && $image_volume_version == $recovery_version ]]; then
 						cp /Volumes/Image\ Volume/Install\ macOS\ Catalina.app/Contents/SharedSupport/BaseSystem-stock.dmg /Volumes/Recovery/"$recovery_folder"/BaseSystem.dmg
 					fi
+					
+					chflags nouchg /Volumes/Recovery/"$recovery_folder"/boot.efi
+					cp "$resources_path"/boot.efi /Volumes/Recovery/"$recovery_folder"
+					chflags uchg /Volumes/Recovery/"$recovery_folder"/boot.efi
 
 					chflags nouchg /Volumes/Recovery/"$recovery_folder"/prelinkedkernel
 					rm /Volumes/Recovery/"$recovery_folder"/prelinkedkernel
@@ -1103,6 +1118,7 @@ Check_Volume_Support
 Volume_Variables
 Check_Volume_dosdude
 Clean_Volume
+Patch_Unus
 Patch_Volume
 Repair_Permissions
 Input_Operation_APFS

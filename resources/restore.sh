@@ -464,16 +464,16 @@ Restore_Volume()
 			rm -R "$volume_path"/System/Library/Extensions/NVDAResmanTesla.kext
 		fi
 
-		if [[ $volume_version_short == "10.14" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version_short == "10.14" ]] && [[ ! $model == "MacBook4,1" ]]; then
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 		fi
 	
-		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version == "10.14."[4-6] || $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]]; then
 			rm "$volume_path"/System/Library/PrivateFrameworks/GPUSupport.framework/Versions/A/Libraries/libGPUSupport.dylib
 			rm -R "$volume_path"/System/Library/Frameworks/OpenGL.framework
 		fi
 	
-		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version == "10.14."[5-6] ]] && [[ ! $model == "MacBook4,1" ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 		fi
 	
@@ -481,7 +481,7 @@ Restore_Volume()
 			rm -R "$volume_path"/System/Library/Extensions/IOSurface.kext
 		fi
 
-		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]] && [[ ! $operation_graphis_card == "2" ]]; then
+		if [[ $volume_version_short == "10.15" ]] && [[ ! $model == "MacBook4,1" ]]; then
 			rm -R "$volume_path"/System/Library/Frameworks/CoreDisplay.framework
 			rm -R "$volume_path"/System/Library/PrivateFrameworks/SkyLight.framework
 		fi
