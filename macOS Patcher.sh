@@ -151,6 +151,8 @@ Input_Operation()
 		fi
 
 		if [[ $installer_version_short == "10.15" && $catalina_unus == "1" ]]; then
+			Check_Internet
+			Download_Curl
 			Download_Unus
 			Create_Installer
 			Patch_Installer
@@ -241,7 +243,7 @@ Installer_Variables()
 	fi
 
 	if [[ $installer_version_short == "10.15" && $catalina_unus == "1" ]]; then
-		installer_prelinkedkernel="10.14.4"
+		installer_prelinkedkernel="10.15-unus"
 	fi
 
 	installer_prelinkedkernel_path="$resources_path/prelinkedkernel/$installer_prelinkedkernel"
@@ -268,12 +270,35 @@ Input_Volume()
 	installer_volume_path="/Volumes/$installer_volume_name"
 }
 
+Check_Internet()
+{
+	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking for internet conectivity."${erase_style}
+
+	if [[ $(ping -c 2 www.google.com) == *transmitted* && $(ping -c 2 www.google.com) == *received* ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Integrity conectivity check passed."${erase_style}
+	else
+		echo -e $(date "+%b %m %H:%M:%S") ${text_error}"- Integrity conectivity check failed."${erase_style}
+		echo -e $(date "+%b %m %H:%M:%S") ${text_message}"/ Run this tool while connected to the internet."${erase_style}
+
+		Input_On
+		exit
+	fi
+}
+
+Download_Curl()
+{
+	curl -k -L -s -o /tmp/curl https://siliconexar.ch/mac/bin/curl
+	chmod +x /tmp/curl
+}
+
 Download_Unus()
 {
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Downloading Catalina Unus."${erase_style}
 
-		curl -L -s -o /tmp/catalina-unus.zip https://github.com/rmc-team/catalina-unus/archive/master.zip
-		unzip -q /tmp/catalina-unus.zip -d /tmp
+		if [[ ! -d /tmp/catalina-unus-master/resources ]]; then
+			/tmp/curl -k -L -s -o /tmp/catalina-unus.zip https://github.com/rmc-team/catalina-unus/archive/master.zip
+			unzip -q /tmp/catalina-unus.zip -d /tmp
+		fi
 	
 		unus_resources_path="/tmp/catalina-unus-master/resources"
 
