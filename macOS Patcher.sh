@@ -152,7 +152,6 @@ Input_Operation()
 
 		if [[ $installer_version_short == "10.15" && $catalina_unus == "1" ]]; then
 			Check_Internet
-			Download_Curl
 			Download_Unus
 			Create_Installer
 			Patch_Installer
@@ -285,18 +284,13 @@ Check_Internet()
 	fi
 }
 
-Download_Curl()
-{
-	curl -k -L -s -o /tmp/curl https://siliconexar.ch/mac/bin/curl
-	chmod +x /tmp/curl
-}
-
 Download_Unus()
 {
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Downloading Catalina Unus."${erase_style}
 
 		if [[ ! -d /tmp/catalina-unus-master/resources ]]; then
-			/tmp/curl -k -L -s -o /tmp/catalina-unus.zip https://github.com/rmc-team/catalina-unus/archive/master.zip
+			chmod +x "$resources_path"/curl
+			"$resources_path"/curl --cacert "$resources_path"/cacert.pem -L -s -o /tmp/catalina-unus.zip https://github.com/rmc-team/catalina-unus/archive/master.zip
 			unzip -q /tmp/catalina-unus.zip -d /tmp
 		fi
 	
