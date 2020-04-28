@@ -604,10 +604,9 @@ Restore_Volume()
 	if [[ $volume_version_short == "10.15" ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing Japanesse input method patch."${erase_style}
 
-			rm -R "$volume_path"/usr/lib//libmecabra.dylib
-			rm -R "$volume_path"/System/Library/PrivateFrameworks//TextInput.framework
-			rm -R "$volume_path"/System/Library/PrivateFrameworks//TextInputCore.framework
-			rm -R "$volume_path"/System/Library/Input\ Methods//JapaneseIM.app
+			rm -R "$volume_path"/usr/lib/libmecabra.dylib
+			rm -R "$volume_path"/System/Library/PrivateFrameworks/TextInput.framework
+			rm -R "$volume_path"/System/Library/Input\ Methods/JapaneseIM.app
 
 		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed Japanesse input method patch."${erase_style}
 	fi

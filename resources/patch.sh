@@ -680,7 +680,6 @@ Patch_Volume()
 
 			cp -R "$resources_path"/libmecabra.dylib "$volume_path"/usr/lib
 			cp -R "$resources_path"/TextInput.framework "$volume_path"/System/Library/PrivateFrameworks
-			cp -R "$resources_path"/TextInputCore.framework "$volume_path"/System/Library/PrivateFrameworks
 			cp -R "$resources_path"/JapaneseIM.app "$volume_path"/System/Library/Input\ Methods
 
 		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched Japanesse input method."${erase_style}
@@ -929,7 +928,6 @@ Repair_Permissions()
 		if [[ $volume_version_short == "10.15" ]]; then
 			Repair "$volume_path"/usr/lib/libmecabra.dylib
 			Repair "$volume_path"/System/Library/PrivateFrameworks/TextInput.framework
-			Repair "$volume_path"/System/Library/PrivateFrameworks/TextInputCore.framework
 			Repair "$volume_path"/System/Library/Input\ Methods/JapaneseIM.app
 		fi
 	
