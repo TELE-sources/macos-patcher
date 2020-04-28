@@ -351,7 +351,7 @@ Clean_Volume()
 
 Restore_Volume()
 {
-	if [[ $volume_version == "10.15."[4-6] ]]; then
+	if [[ $volume_version_short == "10.15" ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing boot.efi patch."${erase_style}
 
 			chflags nouchg "$volume_path"/System/Library/CoreServices/boot.efi
@@ -402,6 +402,10 @@ Restore_Volume()
 
 		if [[ $model == "MacBook5,2" ]]; then
 			rm -R "$volume_path"/System/Library/Extensions/AppleTopCase.kext
+		fi
+
+		if [[ $volume_version_short == "10.15" ]]; then
+			rm -R "$volume_path"/System/Library/Extensions/IOATAFamily.kext/Contents/PlugIns/AppleIntelPIIXATA.kext
 		fi
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed input drivers patch."${erase_style}
@@ -586,15 +590,6 @@ Restore_Volume()
 	fi
 
 
-	if [[ $volume_version_short == "10.15" ]]; then
-		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing IDE drivers patch."${erase_style}
-
-			rm -R "$volume_path"/System/Library/Extensions/IOATAFamily.kext/Contents/PlugIns/AppleIntelPIIXATA.kext
-
-		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed IDE drivers patch."${erase_style}
-	fi
-
-
 	if [[ $volume_version_short == "10.1"[4-5] ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing News+ patch."${erase_style}
 	
@@ -606,12 +601,33 @@ Restore_Volume()
 	fi
 
 
+	if [[ $volume_version_short == "10.15" ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing Japanesse input method patch."${erase_style}
+
+			rm -R "$volume_path"/usr/lib//libmecabra.dylib
+			rm -R "$volume_path"/System/Library/PrivateFrameworks//TextInput.framework
+			rm -R "$volume_path"/System/Library/PrivateFrameworks//TextInputCore.framework
+			rm -R "$volume_path"/System/Library/Input\ Methods//JapaneseIM.app
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed Japanesse input method patch."${erase_style}
+	fi
+
+
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing software update check patch."${erase_style}
 
 		rm "$volume_path"/usr/lib/SUVMMFaker.dylib
 		rm "$volume_path"/System/Library/LaunchDaemons/com.apple.softwareupdated.plist
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed software update check patch."${erase_style}
+
+
+	if [[ $volume_version_short == "10.1"[4-5] ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing kernel panic patch."${erase_style}
+
+			rm -R "$volume_path"/System/Library/Extensions/AAAtelemetrap.kext
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Removed kernel panic patch."${erase_style}
+	fi
 
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Removing System Integrity Protection patch."${erase_style}

@@ -378,13 +378,15 @@ Patch_Unus()
 
 Patch_Volume()
 {
-	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching boot.efi."${erase_style}
-
-		chflags nouchg "$volume_path"/System/Library/CoreServices/boot.efi
-		cp "$resources_path"/boot.efi "$volume_path"/System/Library/CoreServices
-		chflags uchg "$volume_path"/System/Library/CoreServices/boot.efi
-
-	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched boot.efi."${erase_style}
+	if [[ $volume_version_short == "10.15" ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching boot.efi."${erase_style}
+	
+			chflags nouchg "$volume_path"/System/Library/CoreServices/boot.efi
+			cp "$resources_path"/boot.efi "$volume_path"/System/Library/CoreServices
+			chflags uchg "$volume_path"/System/Library/CoreServices/boot.efi
+	
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched boot.efi."${erase_style}
+	fi
 
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching input drivers."${erase_style}
@@ -436,6 +438,10 @@ Patch_Volume()
 
 		if [[ $model == "MacBook5,2" ]]; then
 			cp -R "$resources_path"/AppleTopCase.kext "$volume_path"/System/Library/Extensions
+		fi
+
+		if [[ $volume_version_short == "10.15" ]]; then
+			cp -R "$resources_path"/AppleIntelPIIXATA.kext "$volume_path"/System/Library/Extensions/IOATAFamily.kext/Contents/PlugIns
 		fi
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched input drivers."${erase_style}
@@ -658,15 +664,6 @@ Patch_Volume()
 	fi
 
 
-	if [[ $volume_version_short == "10.15" ]]; then
-		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching IDE drivers."${erase_style}
-
-			cp -R "$resources_path"/AppleIntelPIIXATA.kext "$volume_path"/System/Library/Extensions/IOATAFamily.kext/Contents/PlugIns
-
-		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched IDE drivers."${erase_style}
-	fi
-
-
 	if [[ $volume_version_short == "10.1"[4-5] ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching News+."${erase_style}
 	
@@ -675,6 +672,18 @@ Patch_Volume()
 			fi
 	
 		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched News+."${erase_style}
+	fi
+
+
+	if [[ $volume_version_short == "10.15" ]]; then
+		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching Japanesse input method."${erase_style}
+
+			cp -R "$resources_path"/libmecabra.dylib "$volume_path"/usr/lib
+			cp -R "$resources_path"/TextInput.framework "$volume_path"/System/Library/PrivateFrameworks
+			cp -R "$resources_path"/TextInputCore.framework "$volume_path"/System/Library/PrivateFrameworks
+			cp -R "$resources_path"/JapaneseIM.app "$volume_path"/System/Library/Input\ Methods
+
+		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched Japanesse input method."${erase_style}
 	fi
 
 
@@ -703,7 +712,7 @@ Patch_Volume()
 	if [[ $volume_version_short == "10.1"[4-5] ]]; then
 		echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Patching kernel panic issue."${erase_style}
 
-			Output_Off rm -R "$volume_path"/System/Library/UserEventPlugins/com.apple.telemetry.plugin
+			cp -R "$resources_path"/AAAtelemetrap.kext "$volume_path"/System/Library/Extensions
 
 		echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Patched kernel panic issue."${erase_style}
 	fi
@@ -782,6 +791,10 @@ Repair_Permissions()
 		fi
 		
 		Repair "$volume_path"/System/Library/Extensions/AppleTopCase.kext
+
+		if [[ $volume_version_short == "10.15" ]]; then
+			Repair "$volume_path"/System/Library/Extensions/IOATAFamily.kext
+		fi
 		
 		if [[ $model == "MacPro3,1" ]]; then
 			Repair "$volume_path"/System/Library/Extensions/AAAMouSSE.kext
@@ -914,11 +927,18 @@ Repair_Permissions()
 		Repair "$volume_path"/System/Library/PrivateFrameworks/SiriUI.framework
 
 		if [[ $volume_version_short == "10.15" ]]; then
-			Repair "$volume_path"/System/Library/Extensions/IOATAFamily.kext
+			Repair "$volume_path"/usr/lib/libmecabra.dylib
+			Repair "$volume_path"/System/Library/PrivateFrameworks/TextInput.framework
+			Repair "$volume_path"/System/Library/PrivateFrameworks/TextInputCore.framework
+			Repair "$volume_path"/System/Library/Input\ Methods/JapaneseIM.app
 		fi
 	
 		Repair "$volume_path"/usr/lib/SUVMMFaker.dylib
 		Repair "$volume_path"/System/Library/LaunchDaemons/com.apple.softwareupdated.plist 
+
+		if [[ $volume_version_short == "10.1"[4-5] ]]; then
+			Repair "$volume_path"/System/Library/Extensions/AAAtelemetrap.kext
+		fi
 	
 		Repair "$volume_path"/System/Library/Extensions/SIPManager.kext
 
@@ -1003,9 +1023,11 @@ Patch_Volume_Helpers()
 
 					exit
 				else
-					chflags nouchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
-					cp "$resources_path"/boot.efi /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices
-					chflags uchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
+					if [[ $volume_version_short == "10.15" ]]; then
+						chflags nouchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
+						cp "$resources_path"/boot.efi /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices
+						chflags uchg /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/boot.efi
+					fi
 
 					Output_Off rm /Volumes/Preboot/"$preboot_folder"/System/Library/CoreServices/PlatformSupport.plist
 					Output_Off sed -i '' 's|<string></string>|<string>amfi_get_out_of_my_way=1</string>|' /Volumes/Preboot/"$preboot_folder"/Library/Preferences/SystemConfiguration/com.apple.Boot.plist
@@ -1042,9 +1064,11 @@ Patch_Volume_Helpers()
 						cp /Volumes/Image\ Volume/Install\ macOS\ Catalina.app/Contents/SharedSupport/BaseSystem-stock.dmg /Volumes/Recovery/"$recovery_folder"/BaseSystem.dmg
 					fi
 					
-					chflags nouchg /Volumes/Recovery/"$recovery_folder"/boot.efi
-					cp "$resources_path"/boot.efi /Volumes/Recovery/"$recovery_folder"
-					chflags uchg /Volumes/Recovery/"$recovery_folder"/boot.efi
+					if [[ $volume_version_short == "10.15" ]]; then
+						chflags nouchg /Volumes/Recovery/"$recovery_folder"/boot.efi
+						cp "$resources_path"/boot.efi /Volumes/Recovery/"$recovery_folder"
+						chflags uchg /Volumes/Recovery/"$recovery_folder"/boot.efi
+					fi
 
 					chflags nouchg /Volumes/Recovery/"$recovery_folder"/prelinkedkernel
 					rm /Volumes/Recovery/"$recovery_folder"/prelinkedkernel

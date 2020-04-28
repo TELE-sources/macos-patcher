@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Group-Western</key>
+	<array>
+		<string>US</string>
+		<string>USInternational-PC</string>
+		<string>British</string>
+		<string>French</string>
+		<string>German</string>
+		<string>Spanish - ISO</string>
+		<string>Italian - Pro</string>
+		<string>Dutch</string>
+		<string>Belgian</string>
+		<string>Brazilian - Pro</string>
+		<string>Portuguese</string>
+		<string>Swiss French</string>
+		<string>Swiss German</string>
+		<string>Canadian</string>
+		<string>Canadian - CSA</string>
+		<string>Australian</string>
+	</array>
+	<key>Group-Nordic</key>
+	<array>
+		<string>Norwegian</string>
+		<string>Danish</string>
+		<string>Finnish</string>
+		<string>Swedish - Pro</string>
+	</array>
+	<key>Group-ASCII</key>
+	<array>
+		<string>US</string>
+		<string>French</string>
+		<string>German</string>
+		<string>Spanish - ISO</string>
+		<string>Italian - Pro</string>
+		<string>Dutch</string>
+		<string>Belgian</string>
+		<string>Portuguese</string>
+		<string>Brazilian - Pro</string>
+		<string>Swiss French</string>
+		<string>Swiss German</string>
+		<string>Canadian</string>
+		<string>Canadian - CSA</string>
+		<string>Australian</string>
+		<string>British</string>
+		<string>Norwegian</string>
+		<string>Danish</string>
+		<string>Finnish</string>
+		<string>Swedish - Pro</string>
+		<string>Icelandic</string>
+		<string>Polish</string>
+		<string>Czech</string>
+		<string>Slovak</string>
+		<string>Croatian</string>
+		<string>Slovenian</string>
+		<string>Hungarian</string>
+		<string>Romanian</string>
+		<string>Turkish-QWERTY-PC</string>
+		<string>Turkish-Standard</string>
+		<string>Turkish-QWERTY</string>
+		<string>Turkish</string>
+	</array>
+	<key>Group-Cyrillic</key>
+	<array>
+		<string>Russian</string>
+		<string>Bulgarian</string>
+	</array>
+</dict>
+</plist>

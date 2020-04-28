@@ -13,7 +13,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Trackpad.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.apple.preference.trackpad.macbook52</string>
+	<string>com.apple.preference.trackpad</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

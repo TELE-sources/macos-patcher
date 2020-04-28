@@ -113,7 +113,7 @@ Input_Installer()
 
 Check_Installer_Stucture()
 {
-	Output_Off hdiutil attach "$installer_sharedsupport_path"/InstallESD.dmg -mountpoint /tmp/InstallESD -nobrowse
+	Output_Off hdiutil attach "$installer_sharedsupport_path"/InstallESD.dmg -mountpoint /tmp/InstallESD -nobrowse -noverify
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Checking installer structure."${erase_style}
 
@@ -129,7 +129,7 @@ Check_Installer_Stucture()
 
 	echo -e $(date "+%b %m %H:%M:%S") ${text_progress}"> Mounting installer disk images."${erase_style}
 
-		Output_Off hdiutil attach "$installer_images_path"/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse
+		Output_Off hdiutil attach "$installer_images_path"/BaseSystem.dmg -mountpoint /tmp/Base\ System -nobrowse -noverify
 
 	echo -e $(date "+%b %m %H:%M:%S") ${move_up}${erase_line}${text_success}"+ Mounted installer disk images."${erase_style}
 }
