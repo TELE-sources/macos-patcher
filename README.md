@@ -3,7 +3,7 @@
 # macOS Patcher
 macOS Patcher is a command line tool for running macOS on unsupported Macs
 
-# Contributers
+# Contributors
 I'd like to the thank the following people, and many others, for their research, help, and inspiration.
 - [dosdude1](https://forums.macrumors.com/members/669685/)
 - [parrotgeek1](https://forums.macrumors.com/members/1033441/)
